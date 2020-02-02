@@ -25,9 +25,6 @@ package com.protocol.dns;
  * questions.
  */
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -157,7 +154,6 @@ public class DnsClient {
      * If auth is true, only authoritative responses are accepted; other
      * responses throw NameNotFoundException.
      */
-    @RequiresApi(api = Build.VERSION_CODES.N)
     ResourceRecords query(DnsName fqdn, int qclass, int qtype,
                           boolean recursion, boolean auth)
             throws NamingException {
@@ -298,7 +294,6 @@ public class DnsClient {
         throw ne;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     ResourceRecords queryZone(DnsName zone, int qclass, boolean recursion)
             throws NamingException {
 

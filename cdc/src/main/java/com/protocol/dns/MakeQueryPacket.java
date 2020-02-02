@@ -1,13 +1,7 @@
 package com.protocol.dns;
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
-
-import java.net.DatagramPacket;
 import java.util.function.Function;
 
-@RequiresApi(api = Build.VERSION_CODES.N)
 public class MakeQueryPacket implements Function<MakeQueryPacket.Req, Packet> {
 
     // DNS packet header field offsets

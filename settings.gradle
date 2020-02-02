@@ -1,2 +1,2 @@
-include ':app'
+include ':app', ':cdc', ':server'
 rootProject.name='VirtualTld'

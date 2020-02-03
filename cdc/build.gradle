@@ -2,7 +2,8 @@ apply plugin: 'java-library'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
+    implementation 'dnsjava:dnsjava:2.1.9'
 }
 
 sourceCompatibility = "8"

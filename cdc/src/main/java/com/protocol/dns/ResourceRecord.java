@@ -40,13 +40,13 @@ public class ResourceRecord {
      * Resource record type codes
      */
     public static final int TYPE_A     =  1;
-    static final int TYPE_NS    =  2;
+    public static final int TYPE_NS    =  2;
     static final int TYPE_CNAME =  5;
     static final int TYPE_SOA   =  6;
     static final int TYPE_PTR   = 12;
     static final int TYPE_HINFO = 13;
     static final int TYPE_MX    = 15;
-    static final int TYPE_TXT   = 16;
+    public static final int TYPE_TXT   = 16;
     static final int TYPE_AAAA  = 28;
     static final int TYPE_SRV   = 33;
     static final int TYPE_NAPTR = 35;

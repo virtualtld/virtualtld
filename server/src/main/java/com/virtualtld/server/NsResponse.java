@@ -1,6 +1,7 @@
 package com.virtualtld.server;
 
 import org.xbill.DNS.DClass;
+import org.xbill.DNS.Flags;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Name;
 import org.xbill.DNS.Record;
@@ -31,6 +32,7 @@ public class NsResponse {
     private Message _nsResponse() throws Exception {
         name = Name.fromString(IDN.toASCII(conf.publicDomain + "."));
         nsResp = new Message();
+        nsResp.getHeader().setFlag(Flags.QR);
         addRecord("ver." + conf.majorVersion + "." + conf.minorVersion + ".virtualtld.com.");
         return nsResp;
     }

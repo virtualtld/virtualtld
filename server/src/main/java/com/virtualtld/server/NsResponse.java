@@ -33,6 +33,7 @@ public class NsResponse {
         name = Name.fromString(IDN.toASCII(conf.publicDomain + "."));
         nsResp = new Message();
         nsResp.getHeader().setFlag(Flags.QR);
+        nsResp.getHeader().setFlag(Flags.AA);
         addRecord("ver." + conf.majorVersion + "." + conf.minorVersion + ".virtualtld.com.");
         return nsResp;
     }

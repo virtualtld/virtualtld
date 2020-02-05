@@ -34,6 +34,7 @@ public class NsResponse {
         nsResp = new Message();
         nsResp.getHeader().setFlag(Flags.QR);
         nsResp.getHeader().setFlag(Flags.AA);
+        nsResp.addRecord(Record.newRecord(name, Type.NS, DClass.IN), Section.QUESTION);
         addRecord("ver." + conf.majorVersion + "." + conf.minorVersion + ".virtualtld.com.");
         return nsResp;
     }

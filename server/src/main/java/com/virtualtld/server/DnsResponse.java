@@ -49,6 +49,7 @@ public class DnsResponse {
         Message output = new Message(input.getHeader().getID());
         output.getHeader().setFlag(Flags.QR);
         output.getHeader().setFlag(Flags.AA);
+        output.addRecord(input.getQuestion(), Section.QUESTION);
 //        String digest = input.getQuestion().getName().getLabelString(0);
 //        byte[] chunk = chunks.get(digest);
 //        if (chunk == null) {

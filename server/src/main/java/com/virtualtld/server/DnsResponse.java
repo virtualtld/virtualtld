@@ -10,15 +10,16 @@ import org.xbill.DNS.TXTRecord;
 import org.xbill.DNS.Type;
 
 import java.util.Map;
-import java.util.function.Function;
 
-public class HandleDnsQuery implements Function<Message, Message> {
+public class DnsResponse {
 
+    private final Message input;
     private final Message nsResp;
     private final Map<String, byte[]> chunks;
     private final Name myName;
 
-    public HandleDnsQuery(Message nsResp, Map<String, byte[]> chunks) {
+    public DnsResponse(Message input, Message nsResp, Map<String, byte[]> chunks) {
+        this.input = input;
         this.nsResp = nsResp;
         this.chunks = chunks;
         if (nsResp != null) {
@@ -28,16 +29,7 @@ public class HandleDnsQuery implements Function<Message, Message> {
         }
     }
 
-    @Override
-    public Message apply(Message input) {
-        try {
-            return _apply(input);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Message _apply(Message input) throws Exception {
+    public Message dnsResponse() {
         Record question = input.getQuestion();
         if (question.getName().equals(myName) && question.getDClass() == DClass.IN && question.getType() == Type.NS) {
             Message output = (Message) nsResp.clone();

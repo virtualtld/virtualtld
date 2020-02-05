@@ -7,12 +7,12 @@ import java.util.function.Consumer;
 
 public class DnsServer {
 
-    private final InetSocketAddress addr;
+    private final InetSocketAddress listenAt;
     private final Consumer<DnsRequest> handler;
     private DatagramSocket sock;
 
-    public DnsServer(InetSocketAddress addr, Consumer<DnsRequest> handler) {
-        this.addr = addr;
+    public DnsServer(InetSocketAddress listenAt, Consumer<DnsRequest> handler) {
+        this.listenAt = listenAt;
         this.handler = handler;
     }
 
@@ -25,7 +25,7 @@ public class DnsServer {
     }
 
     private void _start() throws Exception {
-        sock = new DatagramSocket(this.addr);
+        sock = new DatagramSocket(this.listenAt);
         while (true) {
             DatagramPacket packet = new DatagramPacket(new byte[512], 512);
             sock.receive(packet);

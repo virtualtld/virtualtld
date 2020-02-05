@@ -3,6 +3,8 @@ apply plugin: 'java'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'dnsjava:dnsjava:2.1.9'
+    implementation 'org.slf4j:slf4j-api:1.7.29'
+    implementation 'org.slf4j:slf4j-simple:1.7.29'
     testImplementation 'junit:junit:4.12'
 }
 

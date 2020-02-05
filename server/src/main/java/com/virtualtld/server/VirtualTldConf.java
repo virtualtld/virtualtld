@@ -17,20 +17,27 @@ public class VirtualTldConf {
     public String publicDomain;
     public String privateDomain;
 
-    public static VirtualTldConf parse(String webrootDir) throws IOException {
+    public static VirtualTldConf parse(String webrootDir) {
         Path path = Paths.get(webrootDir, "virtualtld.conf");
-        if (Files.exists(path)) {
+        if (!Files.exists(path)) {
             throw new RuntimeException(path + " did not found");
         }
-        List<String> lines = Files.readAllLines(path);
-        return parse(lines);
+        try {
+
+            List<String> lines = Files.readAllLines(path);
+            return parse(lines);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static VirtualTldConf parse(List<String> lines) {
         VirtualTldConf conf = new VirtualTldConf();
         for (String line : lines) {
             String[] kv = line.split("=", 2);
-            conf.set(kv[0], kv[1]);
+            if (kv.length == 2) {
+                conf.set(kv[0], kv[1]);
+            }
         }
         return conf;
     }

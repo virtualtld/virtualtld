@@ -34,6 +34,7 @@ public class HandleDnsQueryTest {
         Message output = new HandleDnsQuery(null, new HashMap<String, byte[]>() {{
             put("abcd", new byte[]{1, 2, 3, 4});
         }}).apply(input);
+        System.out.println(output);
         Assert.assertNotEquals(-1, output.toString().indexOf("\"\\001\\002\\003\\004\""));
     }
 }

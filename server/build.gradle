@@ -9,9 +9,9 @@ dependencies {
 sourceCompatibility = "8"
 targetCompatibility = "8"
 
-task publishLocal(type: JavaExec) {
+task serve(type: JavaExec) {
     group = "Execution"
     description = "Run the main class with JavaExecTask"
     classpath = sourceSets.main.runtimeClasspath
-    main = "com.virtualtld.server.PublishLocal"
+    main = "com.virtualtld.server.Serve"
 }

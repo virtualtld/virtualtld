@@ -60,9 +60,13 @@ public class HandleDnsQuery implements Function<Message, Message> {
             output.getHeader().setRcode(Rcode.NXDOMAIN);
             return output;
         }
-        byte[] record1Bytes = new byte[chunk.length + 1];
-        record1Bytes[0] = (byte) chunk.length;
-        System.arraycopy(chunk, 0, record1Bytes, 1, chunk.length);
+        byte[] record1Bytes = new byte[258];
+        record1Bytes[0] = (byte) 255;
+        record1Bytes[256] = 1;
+        record1Bytes[257] = 11;
+//        byte[] record1Bytes = new byte[chunk.length + 1];
+//        record1Bytes[0] = (byte) chunk.length;
+//        System.arraycopy(chunk, 0, record1Bytes, 1, chunk.length);
         TXTRecord record1 = (TXTRecord) Record.newRecord(input.getQuestion().getName(), Type.TXT, DClass.IN, 172800, record1Bytes);
         output.addRecord(record1, Section.ANSWER);
         return output;

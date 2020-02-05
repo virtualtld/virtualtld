@@ -1,6 +1,7 @@
 package com.virtualtld.server;
 
 import org.xbill.DNS.DClass;
+import org.xbill.DNS.Flags;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Name;
 import org.xbill.DNS.Rcode;
@@ -46,12 +47,14 @@ public class DnsResponse {
 
     private Message queryTxt(Message input) {
         Message output = new Message(input.getHeader().getID());
-        String digest = input.getQuestion().getName().getLabelString(0);
-        byte[] chunk = chunks.get(digest);
-        if (chunk == null) {
-            output.getHeader().setRcode(Rcode.NXDOMAIN);
-            return output;
-        }
+        output.getHeader().setFlag(Flags.QR);
+        output.getHeader().setFlag(Flags.AA);
+//        String digest = input.getQuestion().getName().getLabelString(0);
+//        byte[] chunk = chunks.get(digest);
+//        if (chunk == null) {
+//            output.getHeader().setRcode(Rcode.NXDOMAIN);
+//            return output;
+//        }
         byte[] record1Bytes = new byte[258];
         record1Bytes[0] = (byte) 255;
         record1Bytes[256] = 1;

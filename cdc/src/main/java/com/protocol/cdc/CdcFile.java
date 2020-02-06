@@ -15,7 +15,7 @@ public class CdcFile {
         this.content = content;
     }
 
-    public List<CdcFileBodyChunk> chunks() {
+    public List<CdcFileBodyChunk> body() {
         ArrayList<CdcFileBodyChunk> chunks = new ArrayList<>();
         int pos = 0;
         while (pos < content.length) {
@@ -29,5 +29,9 @@ public class CdcFile {
             pos += chunkSize;
         }
         return chunks;
+    }
+
+    public List<CdcFileHeadNode> head() {
+        return new ArrayList<>();
     }
 }

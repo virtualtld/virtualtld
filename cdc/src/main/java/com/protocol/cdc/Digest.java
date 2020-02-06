@@ -11,7 +11,7 @@ public class Digest {
         crypt.reset();
         crypt.update(chunk1);
         crypt.update(chunk2);
-        return Base64.getEncoder().encodeToString(crypt.digest());
+        return base64(crypt.digest());
     }
 
     public static byte[] sha1Bytes(byte[] chunk) {
@@ -19,6 +19,10 @@ public class Digest {
         crypt.reset();
         crypt.update(chunk);
         return crypt.digest();
+    }
+
+    public static String base64(byte[] data) {
+        return Base64.getEncoder().encodeToString(data);
     }
 
     private static MessageDigest sha1() {

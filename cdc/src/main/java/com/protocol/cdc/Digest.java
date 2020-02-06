@@ -25,6 +25,12 @@ public class Digest {
         return Base64.getEncoder().encodeToString(data);
     }
 
+    public static String base64(byte[] data, int offset, int length) {
+        byte[] subset = new byte[length];
+        System.arraycopy(data, offset, subset, 0, length);
+        return Base64.getEncoder().encodeToString(subset);
+    }
+
     private static MessageDigest sha1() {
         try {
             return MessageDigest.getInstance("SHA-1");

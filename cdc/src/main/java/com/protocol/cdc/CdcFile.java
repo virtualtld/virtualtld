@@ -32,6 +32,9 @@ public class CdcFile {
     }
 
     public List<CdcFileHeadNode> head() {
-        return new ArrayList<>();
+        ArrayList<CdcFileHeadNode> nodes = new ArrayList<>();
+        CdcFileHeadNode node = new CdcFileHeadNode(body(), null);
+        nodes.add(node);
+        return nodes;
     }
 }

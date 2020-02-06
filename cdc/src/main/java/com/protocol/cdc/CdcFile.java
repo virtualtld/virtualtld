@@ -31,9 +31,9 @@ public class CdcFile {
         return chunks;
     }
 
-    public List<CdcFileHeadNode> head() {
-        ArrayList<CdcFileHeadNode> nodes = new ArrayList<>();
-        CdcFileHeadNode node = new CdcFileHeadNode(body(), null);
+    public List<EncodedHeadNode> head() {
+        ArrayList<EncodedHeadNode> nodes = new ArrayList<>();
+        EncodedHeadNode node = new EncodedHeadNode(body(), null);
         nodes.add(node);
         return nodes;
     }

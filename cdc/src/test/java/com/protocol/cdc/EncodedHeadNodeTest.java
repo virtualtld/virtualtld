@@ -9,19 +9,19 @@ import java.util.List;
 import static com.protocol.cdc.Digest.base64;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-public class CdcFileHeadNodeTest {
+public class EncodedHeadNodeTest {
 
     @Test
     public void without_next() {
-        CdcFileHeadNode node = new CdcFileHeadNode(newChunks("hello"), null);
+        EncodedHeadNode node = new EncodedHeadNode(newChunks("hello"), null);
         Assert.assertThat(base64(node.data()), equalTo("AKr0xh3cxeii2r7eDztILNmuqUNN"));
         Assert.assertThat(base64(node.digest()), equalTo("ti/p2xwyZcn9UKmU27ikEO23NyU="));
     }
 
     @Test
     public void with_next() {
-        CdcFileHeadNode node2 = new CdcFileHeadNode(newChunks("world"), null);
-        CdcFileHeadNode node1 = new CdcFileHeadNode(newChunks("hello"), node2);
+        EncodedHeadNode node2 = new EncodedHeadNode(newChunks("world"), null);
+        EncodedHeadNode node1 = new EncodedHeadNode(newChunks("hello"), node2);
         Assert.assertThat(base64(node1.data()), equalTo(
                 "Aar0xh3cxeii2r7eDztILNmuqUNNXdmIbFvbhBgzZMVe8zzE76z3TAA="));
     }

@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static com.protocol.cdc.CdcFileBodyChunk.DIGEST_SIZE;
-import static com.protocol.cdc.CdcFileHeadNode.WITHOUT_NEXT;
+import static com.protocol.cdc.EncodedHeadNode.LAST_NODE;
 import static com.protocol.cdc.Digest.base64;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -38,10 +38,10 @@ public class CdcFileTest {
     @Test
     public void head_has_one_node() {
         CdcFile cdcFile = new CdcFile("最新版本.xyz", new byte[512]);
-        List<CdcFileHeadNode> nodes = cdcFile.head();
+        List<EncodedHeadNode> nodes = cdcFile.head();
         Assert.assertThat(nodes.size(), is(1));
         byte[] data = nodes.get(0).data();
-        Assert.assertThat(data[0], equalTo(WITHOUT_NEXT));
+        Assert.assertThat(data[0], equalTo(LAST_NODE));
         Assert.assertThat(base64(data, 1, DIGEST_SIZE), equalTo(
                 "mDWJU14FxJX/6uSwsx3c+v6Sp2M="));
         Assert.assertThat(base64(data, 1 + DIGEST_SIZE, DIGEST_SIZE), equalTo(

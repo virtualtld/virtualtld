@@ -32,7 +32,7 @@ public class Password {
         }
     }
 
-    public static byte[] randomSalt() {
+    private static byte[] randomSalt() {
         byte[] salt = new byte[8];
         Random random = new Random();
         random.nextBytes(salt);

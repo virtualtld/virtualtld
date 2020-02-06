@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static com.protocol.cdc.CdcFileBodyChunk.DIGEST_SIZE;
+import static com.protocol.cdc.EncodedBodyChunk.DIGEST_SIZE;
 import static com.protocol.cdc.EncodedHeadNode.LAST_NODE;
 import static com.protocol.cdc.Digest.base64;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -15,7 +15,7 @@ public class CdcFileTest {
     @Test
     public void body_has_one_chunk() {
         CdcFile cdcFile = new CdcFile("最新版本.xyz", "hello".getBytes());
-        List<CdcFileBodyChunk> chunks = cdcFile.body();
+        List<EncodedBodyChunk> chunks = cdcFile.body();
         Assert.assertThat(chunks.size(), is(1));
         Assert.assertThat(chunks.get(0).data(), equalTo("hello".getBytes()));
     }
@@ -23,13 +23,13 @@ public class CdcFileTest {
     @Test
     public void body_has_two_chunks() {
         CdcFile cdcFile = new CdcFile("最新版本.xyz", new byte[512]);
-        List<CdcFileBodyChunk> chunks = cdcFile.body();
+        List<EncodedBodyChunk> chunks = cdcFile.body();
         Assert.assertThat(chunks.size(), is(2));
-        CdcFileBodyChunk chunk1 = chunks.get(0);
+        EncodedBodyChunk chunk1 = chunks.get(0);
         Assert.assertThat(chunk1.data().length, equalTo(431));
         Assert.assertThat(base64(chunk1.digest()), equalTo(
                 "mDWJU14FxJX/6uSwsx3c+v6Sp2M="));
-        CdcFileBodyChunk chunk2 = chunks.get(1);
+        EncodedBodyChunk chunk2 = chunks.get(1);
         Assert.assertThat(chunk2.data().length, equalTo(81));
         Assert.assertThat(base64(chunk2.digest()), equalTo(
                 "+Ou7461qjP0TYH/Tp/rXo6elAVg="));

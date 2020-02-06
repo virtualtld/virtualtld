@@ -26,7 +26,8 @@ public class EncodedHeadNodeTest {
                 "Aar0xh3cxeii2r7eDztILNmuqUNNXdmIbFvbhBgzZMVe8zzE76z3TAA="));
     }
 
-    private static List<CdcFileBodyChunk> newChunks(String chunk1) {
-        return Collections.singletonList(new CdcFileBodyChunk(chunk1.getBytes()));
+    private static List<EncodedBodyChunk> newChunks(String chunk1) {
+        Password password = new Password("p@55word", new byte[8]);
+        return Collections.singletonList(new EncodedBodyChunk(password, chunk1.getBytes()));
     }
 }

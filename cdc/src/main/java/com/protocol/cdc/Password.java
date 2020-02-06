@@ -11,6 +11,7 @@ import javax.crypto.spec.PBEParameterSpec;
 
 public class Password {
 
+    public final static int SALT_SIZE = 8;
     private final SecretKey secretKey;
     private final PBEParameterSpec pbeParameterSpec;
     public final byte[] salt;
@@ -33,7 +34,7 @@ public class Password {
     }
 
     private static byte[] randomSalt() {
-        byte[] salt = new byte[8];
+        byte[] salt = new byte[SALT_SIZE];
         Random random = new Random();
         random.nextBytes(salt);
         return salt;

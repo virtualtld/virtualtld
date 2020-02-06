@@ -14,6 +14,13 @@ public class Digest {
         return Base64.getEncoder().encodeToString(crypt.digest());
     }
 
+    public static byte[] sha1Bytes(byte[] chunk) {
+        MessageDigest crypt = sha1();
+        crypt.reset();
+        crypt.update(chunk);
+        return crypt.digest();
+    }
+
     private static MessageDigest sha1() {
         try {
             return MessageDigest.getInstance("SHA-1");

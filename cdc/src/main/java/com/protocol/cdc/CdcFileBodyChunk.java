@@ -8,7 +8,7 @@ public class CdcFileBodyChunk {
     }
 
     public byte[] digest() {
-        return null;
+        return Digest.sha1Bytes(data);
     }
 
     public byte[] data() {

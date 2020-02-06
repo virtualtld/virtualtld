@@ -18,10 +18,16 @@ public class CdcFile {
     public List<CdcFileBodyChunk> chunks() {
         ArrayList<CdcFileBodyChunk> chunks = new ArrayList<>();
         int pos = 0;
-        int chunkSize = content.length - pos;
-        byte[] data = new byte[chunkSize];
-        System.arraycopy(content, pos, data, 0, chunkSize);
-        chunks.add(new CdcFileBodyChunk(data));
+        while (pos < content.length) {
+            int chunkSize = content.length - pos;
+            if (chunkSize > chunkSizeLimit) {
+                chunkSize = chunkSizeLimit;
+            }
+            byte[] data = new byte[chunkSize];
+            System.arraycopy(content, pos, data, 0, chunkSize);
+            chunks.add(new CdcFileBodyChunk(data));
+            pos += chunkSize;
+        }
         return chunks;
     }
 }

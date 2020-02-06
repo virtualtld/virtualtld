@@ -26,7 +26,7 @@ public class ChunkSizeLimit {
         }
     }
 
-    public int _limit() throws Exception {
+    private int _limit() throws Exception {
         int baseSize = baseSize();
         int limit = 512 - baseSize;
         if (limit > 255) {

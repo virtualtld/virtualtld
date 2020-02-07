@@ -6,9 +6,8 @@ import static com.protocol.cdc.EncodedBodyChunk.DIGEST_SIZE;
 import static com.protocol.cdc.Password.SALT_SIZE;
 
 class EncodedHeadNode {
-    public final static byte WITH_NEXT = (byte) 1;
-    public final static byte WITH_SALT = (byte) 2;
-    public final static byte WITH_SALT_AND_NEXT = (byte) 3;
+    public final static byte FLAG_NEXT = (byte) 1;
+    public final static byte FLAG_SALT = (byte) 2;
 
     private final List<EncodedBodyChunk> chunks;
     private final EncodedHeadNode next;
@@ -21,32 +20,29 @@ class EncodedHeadNode {
     }
 
     private byte nodeFlag() {
-        if (salt != null && next != null) {
-            return WITH_SALT_AND_NEXT;
-        }
+        byte flag = 0;
         if (salt != null) {
-            return WITH_SALT;
+            flag |= FLAG_SALT;
         }
         if (next != null) {
-            return WITH_NEXT;
+            flag |= FLAG_NEXT;
         }
-        return 0;
+        return flag;
     }
 
     public byte[] data() {
         int size = 1 + chunks.size() * DIGEST_SIZE;
-        if (salt != null) {
-            size += SALT_SIZE;
-        }
         if (next != null) {
             size += DIGEST_SIZE;
+        }
+        if (salt != null) {
+            size += SALT_SIZE;
         }
         byte[] data = new byte[size];
         int pos = 0;
         data[pos++] = nodeFlag();
-        for (int i = 0; i < chunks.size(); i++) {
-            EncodedBodyChunk chunk = chunks.get(i);
-            byte[] digest = chunk.digest();
+        if (next != null) {
+            byte[] digest = next.digest();
             System.arraycopy(digest, 0, data, pos, DIGEST_SIZE);
             pos += DIGEST_SIZE;
         }
@@ -54,9 +50,11 @@ class EncodedHeadNode {
             System.arraycopy(salt, 0, data, pos, SALT_SIZE);
             pos += SALT_SIZE;
         }
-        if (next != null) {
-            byte[] digest = next.digest();
+        for (int i = 0; i < chunks.size(); i++) {
+            EncodedBodyChunk chunk = chunks.get(i);
+            byte[] digest = chunk.digest();
             System.arraycopy(digest, 0, data, pos, DIGEST_SIZE);
+            pos += DIGEST_SIZE;
         }
         return data;
     }

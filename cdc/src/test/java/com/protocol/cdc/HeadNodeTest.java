@@ -14,20 +14,25 @@ public class HeadNodeTest {
     @Test
     public void without_next() {
         byte[] salt = {1, 2, 3, 4, 5, 6, 7, 8};
-        EncodedHeadNode encoded = new EncodedHeadNode(newChunks("hello"), salt, null);
+        List<EncodedBodyChunk> chunks = newChunks("hello");
+        assertThat(base64(chunks.get(0).digest()), equalTo("OEwotrQj9ssMmddQRUI9kdr0yDc="));
+        EncodedHeadNode encoded = new EncodedHeadNode(chunks, salt, null);
         DecodedHeadNode decoded = new DecodedHeadNode(encoded.data());
         assertThat(decoded.salt(), equalTo(salt));
         assertThat(decoded.chunkDigests(), equalTo(Collections.singletonList(
-                "AjhMKLa0I/bLDJnXUEVCPZHa9Mg=")));
+                "OEwotrQj9ssMmddQRUI9kdr0yDc=")));
     }
 
     @Test
     public void with_next() {
         byte[] salt = {1, 2, 3, 4, 5, 6, 7, 8};
-        EncodedHeadNode node2 = new EncodedHeadNode(newChunks("world"), salt, null);
-        EncodedHeadNode node1 = new EncodedHeadNode(newChunks("hello"), salt, node2);
-        assertThat(base64(node1.data()), equalTo(
-                "AQIDBAUGBwgBOEwotrQj9ssMmddQRUI9kdr0yDfi9hM0D/ukfh4mGfX7cdvNvozQeA=="));
+        EncodedHeadNode encoded2 = new EncodedHeadNode(newChunks("world"), salt, null);
+        EncodedHeadNode encoded1 = new EncodedHeadNode(newChunks("hello"), salt, encoded2);
+        DecodedHeadNode decoded1 = new DecodedHeadNode(encoded1.data());
+        assertThat(decoded1.salt(), equalTo(salt));
+        assertThat(decoded1.chunkDigests(), equalTo(Collections.singletonList(
+                "OEwotrQj9ssMmddQRUI9kdr0yDc=")));
+        assertThat(decoded1.nextDigest(), equalTo("m5wCmf4Rx+e3+iJEDGbLqhrDCrE="));
     }
 
     private static List<EncodedBodyChunk> newChunks(String chunk1) {

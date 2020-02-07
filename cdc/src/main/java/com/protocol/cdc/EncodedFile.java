@@ -3,14 +3,18 @@ package com.protocol.cdc;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CdcFile {
+import static com.protocol.cdc.Password.SALT_SIZE;
+import static java.util.Arrays.copyOfRange;
+
+public class EncodedFile {
 
     private final Password password;
     private final int chunkSizeLimit;
     private final byte[] content;
 
-    public CdcFile(String privateDomain, byte[] content) {
-        this.password = new Password(privateDomain);
+    public EncodedFile(String privateDomain, byte[] content) {
+        byte[] salt = copyOfRange(Digest.sha1Bytes(content), 0, SALT_SIZE);
+        this.password = new Password(privateDomain, salt);
         chunkSizeLimit = new ChunkSizeLimit(privateDomain).limit();
         this.content = content;
     }
@@ -33,7 +37,7 @@ public class CdcFile {
 
     public List<EncodedHeadNode> head() {
         ArrayList<EncodedHeadNode> nodes = new ArrayList<>();
-        EncodedHeadNode node = new EncodedHeadNode(body(), null);
+        EncodedHeadNode node = new EncodedHeadNode(body(), null, null);
         nodes.add(node);
         return nodes;
     }

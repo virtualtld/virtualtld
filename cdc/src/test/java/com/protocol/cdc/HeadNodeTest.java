@@ -1,6 +1,5 @@
 package com.protocol.cdc;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -8,23 +7,26 @@ import java.util.List;
 
 import static com.protocol.cdc.Digest.base64;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
-public class EncodedHeadNodeTest {
+public class HeadNodeTest {
 
     @Test
     public void without_next() {
         byte[] salt = {1, 2, 3, 4, 5, 6, 7, 8};
-        EncodedHeadNode node = new EncodedHeadNode(newChunks("hello"), null, salt);
-        Assert.assertThat(base64(node.data()), equalTo("AQIDBAUGBwgAOEwotrQj9ssMmddQRUI9kdr0yDc="));
-        Assert.assertThat(base64(node.digest()), equalTo("+R9C+oJgJmVqrkl1ECaylkveB3o="));
+        EncodedHeadNode encoded = new EncodedHeadNode(newChunks("hello"), salt, null);
+        DecodedHeadNode decoded = new DecodedHeadNode(encoded.data());
+        assertThat(decoded.salt(), equalTo(salt));
+        assertThat(decoded.chunkDigests(), equalTo(Collections.singletonList(
+                "AjhMKLa0I/bLDJnXUEVCPZHa9Mg=")));
     }
 
     @Test
     public void with_next() {
         byte[] salt = {1, 2, 3, 4, 5, 6, 7, 8};
-        EncodedHeadNode node2 = new EncodedHeadNode(newChunks("world"), null);
-        EncodedHeadNode node1 = new EncodedHeadNode(newChunks("hello"), node2, salt);
-        Assert.assertThat(base64(node1.data()), equalTo(
+        EncodedHeadNode node2 = new EncodedHeadNode(newChunks("world"), salt, null);
+        EncodedHeadNode node1 = new EncodedHeadNode(newChunks("hello"), salt, node2);
+        assertThat(base64(node1.data()), equalTo(
                 "AQIDBAUGBwgBOEwotrQj9ssMmddQRUI9kdr0yDfi9hM0D/ukfh4mGfX7cdvNvozQeA=="));
     }
 

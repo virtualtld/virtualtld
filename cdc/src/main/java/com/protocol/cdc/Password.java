@@ -1,7 +1,6 @@
 package com.protocol.cdc;
 
 import java.net.IDN;
-import java.util.Random;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -16,10 +15,6 @@ public class Password {
     private final PBEParameterSpec pbeParameterSpec;
     public final byte[] salt;
 
-    public Password(String password) {
-        this(password, randomSalt());
-    }
-
     public Password(String password, byte[] salt) {
         try {
             PBEKeySpec pbeKeySpec = new PBEKeySpec(IDN.toASCII(password).toCharArray());
@@ -31,13 +26,6 @@ public class Password {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static byte[] randomSalt() {
-        byte[] salt = new byte[SALT_SIZE];
-        Random random = new Random();
-        random.nextBytes(salt);
-        return salt;
     }
 
     public byte[] encrypt(byte[] decoded) {

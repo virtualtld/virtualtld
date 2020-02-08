@@ -6,7 +6,7 @@ import static com.protocol.cdc.Password.SALT_SIZE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class BodyChunkTest {
+public class EncodedBodyChunkTest {
 
     @Test
     public void digest() {

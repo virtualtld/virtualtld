@@ -9,7 +9,7 @@ import static com.protocol.cdc.Digest.base64;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class HeadNodeTest {
+public class EncodedHeadNodeTest {
 
     @Test
     public void without_next() {

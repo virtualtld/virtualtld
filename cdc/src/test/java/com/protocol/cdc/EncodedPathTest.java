@@ -7,7 +7,7 @@ import org.xbill.DNS.TextParseException;
 
 import java.util.ArrayList;
 
-public class PathTest {
+public class EncodedPathTest {
     @Test
     public void test_encode() throws TextParseException {
         EncodedPath path = new EncodedPath(Name.fromString("abc.com."), "", new EncodedHeadNode(

@@ -12,7 +12,7 @@ import static com.protocol.cdc.EncodedHeadNode.FLAG_SALT;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 
-public class FileTest {
+public class EncodedFileTest {
     @Test
     public void body_has_one_chunk() {
         EncodedFile encodedFile = newEncodedFile("hello".getBytes());

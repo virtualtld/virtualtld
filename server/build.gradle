@@ -16,7 +16,7 @@ targetCompatibility = "8"
 
 task serve(type: JavaExec) {
     group = "Execution"
-    description = "Run the main class with JavaExecTask"
+    description = "Serve virtualtld site"
     classpath = sourceSets.main.runtimeClasspath
     main = "com.virtualtld.server.Serve"
 }

@@ -12,7 +12,10 @@ import org.xbill.DNS.Section;
 import org.xbill.DNS.TXTRecord;
 import org.xbill.DNS.Type;
 
+import java.util.List;
 import java.util.Map;
+
+import static java.util.Arrays.copyOfRange;
 
 public class CdcResponse {
 
@@ -58,26 +61,17 @@ public class CdcResponse {
             output.getHeader().setRcode(Rcode.NXDOMAIN);
             return output;
         }
-        byte[] recordBytes = txtRecordBytes(block);
         TXTRecord record = (TXTRecord) Record.newRecord(
-                input.getQuestion().getName(), Type.TXT, DClass.IN, 172800, recordBytes);
+                input.getQuestion().getName(), Type.TXT, DClass.IN, 172800, new byte[]{0});
+        List<byte[]> strings = record.getStringsAsByteArrays();
+        strings.clear();
+        if (block.length < 256) {
+            strings.add(block);
+        } else {
+            strings.add(copyOfRange(block, 0, 255));
+            strings.add(copyOfRange(block, 255, block.length));
+        }
         output.addRecord(record, Section.ANSWER);
         return output;
-    }
-
-    private byte[] txtRecordBytes(byte[] block) {
-        if (block.length < 256) {
-            byte[] recordBytes = new byte[block.length + 1];
-            recordBytes[0] = (byte) block.length;
-            System.arraycopy(block, 0, recordBytes, 1, block.length);
-            return recordBytes;
-        }
-        byte[] recordBytes = new byte[block.length + 2];
-        recordBytes[0] = (byte) 255;
-        System.arraycopy(block, 0, recordBytes, 1, 255);
-        int remaining = block.length - 255;
-        recordBytes[256] = (byte) remaining;
-        System.arraycopy(block, 255, recordBytes, 257, remaining);
-        return recordBytes;
     }
 }

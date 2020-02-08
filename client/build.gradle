@@ -1,0 +1,15 @@
+apply plugin: 'java'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+sourceCompatibility = "8"
+targetCompatibility = "8"
+
+task download(type: JavaExec) {
+    group = "Execution"
+    description = "Download file from virtualtld site"
+    classpath = sourceSets.main.runtimeClasspath
+    main = "com.virtualtld.client.Download"
+}

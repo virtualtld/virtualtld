@@ -2,43 +2,43 @@ package com.virtualtld.server;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import com.protocol.cdc.Block;
+import com.protocol.cdc.CdcSite;
 
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
 
 public class EncodedDirectoryTest {
 
     @Test
-    public void spike() throws IOException {
-        PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(
-                "glob:**/*.zip");
-        System.out.println(pathMatcher.matches(Paths.get("hello", "world", "a.zip")));;
-        System.out.println(pathMatcher.matches(Paths.get("hello", "world", "a.txt")));;
-
+    public void one_file() throws IOException {
         FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
-        Files.createDirectories(fs.getPath("/root"));
-        Files.write(fs.getPath("/root/hello.txt"), "hello".getBytes());
-        Files.walkFileTree(fs.getPath("/root"), new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                return super.preVisitDirectory(dir, attrs);
-            }
+        Files.createDirectories(fs.getPath("/a/b/c"));
+        Files.write(fs.getPath("/a/World.txt"), "world".getBytes());
+        List<Block> blocks = newEncodedDirectory(fs.getPath("/a")).blocks();
+        assertThat(blocks, hasSize(3));
+    }
 
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                System.out.println(file);
-                return FileVisitResult.CONTINUE;
-            }
-        });
+    @Test
+    public void two_files() throws IOException {
+        FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+        Files.createDirectories(fs.getPath("/a/b/c"));
+        Files.write(fs.getPath("/a/b/c/Hello.txt"), "hello".getBytes());
+        Files.write(fs.getPath("/a/World.txt"), "world".getBytes());
+        List<Block> blocks = newEncodedDirectory(fs.getPath("/a")).blocks();
+        assertThat(blocks, hasSize(6));
+    }
+
+    private static EncodedDirectory newEncodedDirectory(Path webRoot) {
+        CdcSite site = new CdcSite("最新版本.com", "最新版本.xyz");
+        return new EncodedDirectory(site, webRoot, new WebFiles.Options());
     }
 }

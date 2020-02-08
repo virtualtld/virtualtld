@@ -7,6 +7,8 @@ dependencies {
     implementation 'org.slf4j:slf4j-simple:1.7.29'
     implementation 'com.google.jimfs:jimfs:1.1'
     testImplementation 'junit:junit:4.12'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    implementation project(path: ':cdc')
 }
 
 sourceCompatibility = "8"

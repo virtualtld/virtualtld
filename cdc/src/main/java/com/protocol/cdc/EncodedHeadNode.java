@@ -6,7 +6,7 @@ import static com.protocol.cdc.Digest.base64;
 import static com.protocol.cdc.EncodedBodyChunk.DIGEST_SIZE;
 import static com.protocol.cdc.Password.SALT_SIZE;
 
-class EncodedHeadNode implements Block {
+public class EncodedHeadNode implements Block {
     public final static byte FLAG_NEXT = (byte) 1;
     public final static byte FLAG_SALT = (byte) 2;
 

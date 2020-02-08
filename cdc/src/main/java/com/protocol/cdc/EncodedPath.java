@@ -1,29 +1,26 @@
 package com.protocol.cdc;
 
 import org.xbill.DNS.Name;
-import org.xbill.DNS.TextParseException;
 
-public class EncodedPath {
+public class EncodedPath implements Block {
 
-    private final CdcSite site;
+    private final Name publicDomain;
     private final String path;
+    private final EncodedHeadNode firstNode;
 
-    public EncodedPath(CdcSite site, String path) {
-        this.site = site;
+    public EncodedPath(Name publicDomain, String path, EncodedHeadNode firstNode) {
+        this.publicDomain = publicDomain;
         this.path = path;
+        this.firstNode = firstNode;
     }
 
     public String digest() {
         String normalizedPath = path.length() > 0 ? path : "/";
-        return Digest.sha1(site.publicDomain.toString().getBytes(),
+        return Digest.sha1(publicDomain.toString().getBytes(),
                 normalizedPath.getBytes());
     }
 
-    public Name dnsName() {
-        try {
-            return new Name(digest(), site.privateDomain);
-        } catch (TextParseException e) {
-            throw new RuntimeException(e);
-        }
+    public byte[] data() {
+        return firstNode.data();
     }
 }

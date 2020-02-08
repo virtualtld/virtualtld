@@ -28,12 +28,12 @@ public class FileTest {
         Assert.assertThat(chunks.size(), is(2));
         EncodedBodyChunk chunk1 = chunks.get(0);
         Assert.assertThat(chunk1.decodedData().length, equalTo(431));
-        Assert.assertThat(base64(chunk1.digest()), equalTo(
-                "JqXHYQIbjEt0XU1AZhpGVdDDQKM="));
+        Assert.assertThat(base64(chunk1.digestBytes()), equalTo(
+                "2l2EO4S6yQhd5uiISq49DJcgP+U="));
         EncodedBodyChunk chunk2 = chunks.get(1);
         Assert.assertThat(chunk2.decodedData().length, equalTo(81));
-        Assert.assertThat(base64(chunk2.digest()), equalTo(
-                "ho/OUhau/V2fJz+VMlM+nB5/JLo="));
+        Assert.assertThat(base64(chunk2.digestBytes()), equalTo(
+                "Aar6AtfY07ragpI3npgm1CdT0vo="));
     }
 
     @Test
@@ -46,7 +46,7 @@ public class FileTest {
         Assert.assertThat(base64(node.salt()), equalTo(
                 "XD64AGZCAAI="));
         Assert.assertThat(node.chunkDigests(), equalTo(
-                Arrays.asList("JqXHYQIbjEt0XU1AZhpGVdDDQKM=", "ho/OUhau/V2fJz+VMlM+nB5/JLo=")));
+                Arrays.asList("2l2EO4S6yQhd5uiISq49DJcgP+U=", "Aar6AtfY07ragpI3npgm1CdT0vo=")));
     }
 
     @Test

@@ -1,18 +1,13 @@
 package com.protocol.cdc;
 
-import org.xbill.DNS.Name;
-import org.xbill.DNS.TextParseException;
-
 import static com.protocol.cdc.Digest.base64;
 
-public class EncodedBodyChunk {
+public class EncodedBodyChunk implements Block {
     public static final int DIGEST_SIZE = 20;
-    private final Name privateDomain;
     private final Password password;
     private final byte[] decodedData;
 
-    public EncodedBodyChunk(Name privateDomain, Password password, byte[] decodedData) {
-        this.privateDomain = privateDomain;
+    public EncodedBodyChunk(Password password, byte[] decodedData) {
         this.password = password;
         this.decodedData = decodedData;
     }
@@ -25,15 +20,11 @@ public class EncodedBodyChunk {
         return password.encrypt(decodedData);
     }
 
-    public byte[] digest() {
+    public byte[] digestBytes() {
         return Digest.sha1Bytes(data());
     }
 
-    public Name dnsName() {
-        try {
-            return new Name(base64(digest()), privateDomain);
-        } catch (TextParseException e) {
-            throw new RuntimeException(e);
-        }
+    public String digest() {
+        return base64(digestBytes());
     }
 }

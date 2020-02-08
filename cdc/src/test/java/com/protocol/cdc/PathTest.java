@@ -2,13 +2,17 @@ package com.protocol.cdc;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.xbill.DNS.Name;
+import org.xbill.DNS.TextParseException;
+
+import java.util.ArrayList;
 
 public class PathTest {
     @Test
-    public void test_encode() {
-        CdcSite site = new CdcSite("最新版本.com", "最新版本.xyz");
-        EncodedPath path = new EncodedPath(site, "");
-        Assert.assertEquals("r8eMbUUdjj2cPfqeMwBJG8amEPQ=.xn--efv12a2dz86b.xyz.",
-                path.dnsName().toString());
+    public void test_encode() throws TextParseException {
+        EncodedPath path = new EncodedPath(Name.fromString("abc.com."), "", new EncodedHeadNode(
+                new ArrayList<>(), new byte[8], null));
+        Assert.assertEquals("r8eMbUUdjj2cPfqeMwBJG8amEPQ=",
+                path.digest());
     }
 }

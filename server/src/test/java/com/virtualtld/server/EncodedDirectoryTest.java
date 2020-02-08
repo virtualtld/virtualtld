@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Map;
 
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.aMapWithSize;
 import static org.junit.Assert.assertThat;
 
 public class EncodedDirectoryTest {
@@ -23,8 +23,8 @@ public class EncodedDirectoryTest {
         FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
         Files.createDirectories(fs.getPath("/a/b/c"));
         Files.write(fs.getPath("/a/World.txt"), "world".getBytes());
-        List<Block> blocks = newEncodedDirectory(fs.getPath("/a")).blocks();
-        assertThat(blocks, hasSize(3));
+        Map<String, Block> blocks = newEncodedDirectory(fs.getPath("/a")).blocks();
+        assertThat(blocks, aMapWithSize(3));
     }
 
     @Test
@@ -33,8 +33,8 @@ public class EncodedDirectoryTest {
         Files.createDirectories(fs.getPath("/a/b/c"));
         Files.write(fs.getPath("/a/b/c/Hello.txt"), "hello".getBytes());
         Files.write(fs.getPath("/a/World.txt"), "world".getBytes());
-        List<Block> blocks = newEncodedDirectory(fs.getPath("/a")).blocks();
-        assertThat(blocks, hasSize(6));
+        Map<String, Block> blocks = newEncodedDirectory(fs.getPath("/a")).blocks();
+        assertThat(blocks, aMapWithSize(6));
     }
 
     private static EncodedDirectory newEncodedDirectory(Path webRoot) {

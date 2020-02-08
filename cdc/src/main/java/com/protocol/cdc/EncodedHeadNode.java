@@ -13,6 +13,7 @@ public class EncodedHeadNode implements Block {
     private final List<EncodedBodyChunk> chunks;
     private EncodedHeadNode next;
     private final byte[] salt;
+    private byte[] cache;
 
     public EncodedHeadNode(List<EncodedBodyChunk> chunks, byte[] salt) {
         this(chunks, salt, null);
@@ -40,6 +41,13 @@ public class EncodedHeadNode implements Block {
     }
 
     public byte[] data() {
+        if (cache == null) {
+            cache = calculateData();
+        }
+        return cache;
+    }
+
+    private byte[] calculateData() {
         int size = 1 + chunks.size() * DIGEST_SIZE;
         if (next != null) {
             size += DIGEST_SIZE;

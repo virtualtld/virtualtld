@@ -6,6 +6,7 @@ public class EncodedBodyChunk implements Block {
     public static final int DIGEST_SIZE = 20;
     private final Password password;
     private final byte[] decodedData;
+    private byte[] cache;
 
     public EncodedBodyChunk(Password password, byte[] decodedData) {
         this.password = password;
@@ -17,6 +18,13 @@ public class EncodedBodyChunk implements Block {
     }
 
     public byte[] data() {
+        if (cache == null) {
+            cache = calculateData();
+        }
+        return cache;
+    }
+    
+    private byte[] calculateData() {
         return password.encrypt(decodedData);
     }
 

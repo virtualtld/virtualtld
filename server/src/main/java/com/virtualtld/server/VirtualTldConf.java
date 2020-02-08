@@ -2,8 +2,10 @@ package com.virtualtld.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,9 @@ public class VirtualTldConf {
     public List<InetSocketAddress> privateResolvers = new ArrayList<>();
     public String publicDomain;
     public String privateDomain;
+    public List<PathMatcher> fileBlacklist = new ArrayList<>();
+    public List<PathMatcher> fileWhitelist = new ArrayList<>();
+    public List<PathMatcher> directoryBlacklist = new ArrayList<>();
 
 
     public static VirtualTldConf parse(String webrootDir) {
@@ -48,16 +53,28 @@ public class VirtualTldConf {
                 setVersion(value);
                 return;
             case "PublicDomain":
-                this.publicDomain = value;
+                publicDomain = value;
                 return;
             case "PrivateDomain":
-                this.privateDomain = value;
+                privateDomain = value;
                 return;
             case "ListenAt":
-                this.listenAt = parseIpAndPort(value);
+                listenAt = parseIpAndPort(value);
                 return;
             case "PrivateResolver":
                 addPrivateResolver(value);
+                return;
+            case "FileBlacklist":
+                fileBlacklist.add(FileSystems.getDefault().getPathMatcher(
+                        "glob:" + value));
+                return;
+            case "FileWhitelist":
+                fileWhitelist.add(FileSystems.getDefault().getPathMatcher(
+                        "glob:" + value));
+                return;
+            case "DirectoryBlacklist":
+                directoryBlacklist.add(FileSystems.getDefault().getPathMatcher(
+                        "glob:" + value));
                 return;
         }
         throw new RuntimeException("unknown config key: " + key);

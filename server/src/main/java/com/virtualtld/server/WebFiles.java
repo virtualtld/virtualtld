@@ -27,8 +27,17 @@ public class WebFiles {
         try {
             Files.walkFileTree(webRoot, new SimpleFileVisitor<Path>() {
                 @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    return isInDirectoryBlacklist(dir)
+                            ? FileVisitResult.SKIP_SUBTREE
+                            : FileVisitResult.CONTINUE;
+                }
+
+                @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    fileMap.put(webRoot.relativize(file).toString(), file);
+                    if (shouldIncludeFile(file)) {
+                        fileMap.put(webRoot.relativize(file).toString(), file);
+                    }
                     return FileVisitResult.CONTINUE;
                 }
             });
@@ -38,10 +47,46 @@ public class WebFiles {
         return fileMap;
     }
 
+    private boolean isInDirectoryBlacklist(Path dir) {
+        for (PathMatcher pathMatcher : options.directoryBlacklist) {
+            if (pathMatcher.matches(dir)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean shouldIncludeFile(Path file) {
+        if (isInFileBlacklist(file)) {
+            return false;
+        }
+        if (options.fileWhitelist.isEmpty()) {
+            return true;
+        }
+        return isInFileWhitelist(file);
+    }
+
+    private boolean isInFileBlacklist(Path file) {
+        for (PathMatcher pathMatcher : options.fileBlacklist) {
+            if (pathMatcher.matches(file)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isInFileWhitelist(Path file) {
+        for (PathMatcher pathMatcher : options.fileWhitelist) {
+            if (pathMatcher.matches(file)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static class Options {
         public List<PathMatcher> fileBlacklist = new ArrayList<>();
         public List<PathMatcher> fileWhitelist = new ArrayList<>();
         public List<PathMatcher> directoryBlacklist = new ArrayList<>();
-        public List<PathMatcher> directoryWhitelist = new ArrayList<>();
     }
 }

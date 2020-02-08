@@ -1,5 +1,7 @@
 package com.virtualtld.server;
 
+import com.protocol.cdc.Block;
+
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Flags;
 import org.xbill.DNS.Message;
@@ -16,13 +18,13 @@ public class DnsResponse {
 
     private final Message input;
     private final Message nsResp;
-    private final Map<String, byte[]> chunks;
+    private final Map<String, Block> blocks;
     private final Name myName;
 
-    public DnsResponse(Message input, Message nsResp, Map<String, byte[]> chunks) {
+    public DnsResponse(Message input, Message nsResp, Map<String, Block> blocks) {
         this.input = input;
         this.nsResp = nsResp;
-        this.chunks = chunks;
+        this.blocks = blocks;
         if (nsResp != null) {
             myName = nsResp.getSectionArray(Section.ANSWER)[0].getName();
         } else {
@@ -50,20 +52,17 @@ public class DnsResponse {
         output.getHeader().setFlag(Flags.QR);
         output.getHeader().setFlag(Flags.AA);
         output.addRecord(input.getQuestion(), Section.QUESTION);
-//        String digest = input.getQuestion().getName().getLabelString(0);
-//        byte[] chunk = chunks.get(digest);
-//        if (chunk == null) {
-//            output.getHeader().setRcode(Rcode.NXDOMAIN);
-//            return output;
-//        }
-        byte[] record1Bytes = new byte[258];
-        record1Bytes[0] = (byte) 255;
-        record1Bytes[256] = 1;
-        record1Bytes[257] = 11;
-//        byte[] record1Bytes = new byte[chunk.length + 1];
-//        record1Bytes[0] = (byte) chunk.length;
-//        System.arraycopy(chunk, 0, record1Bytes, 1, chunk.length);
-        TXTRecord record1 = (TXTRecord) Record.newRecord(input.getQuestion().getName(), Type.TXT, DClass.IN, 172800, record1Bytes);
+        String digest = input.getQuestion().getName().getLabelString(0);
+        byte[] block = blocks.get(digest).data();
+        if (block == null) {
+            output.getHeader().setRcode(Rcode.NXDOMAIN);
+            return output;
+        }
+        byte[] record1Bytes = new byte[block.length + 1];
+        record1Bytes[0] = (byte) block.length;
+        System.arraycopy(block, 0, record1Bytes, 1, block.length);
+        TXTRecord record1 = (TXTRecord) Record.newRecord(
+                input.getQuestion().getName(), Type.TXT, DClass.IN, 172800, record1Bytes);
         output.addRecord(record1, Section.ANSWER);
         return output;
     }

@@ -1,5 +1,7 @@
 package com.virtualtld.server;
 
+import com.protocol.cdc.Block;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.xbill.DNS.DClass;
@@ -11,6 +13,9 @@ import org.xbill.DNS.Type;
 
 import java.net.IDN;
 import java.util.HashMap;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertThat;
 
 public class DnsResponseTest {
 
@@ -31,10 +36,20 @@ public class DnsResponseTest {
     public void query_txt_less_than_255() throws Exception {
         Name name = Name.fromString(IDN.toASCII("abcd.最新版本.xyz."));
         Message input = Message.newQuery(Record.newRecord(name, Type.TXT, DClass.IN));
-        Message output = new DnsResponse(input, null, new HashMap<String, byte[]>() {{
-            put("abcd", new byte[]{1, 2, 3, 4});
+        Message output = new DnsResponse(input, null, new HashMap<String, Block>() {{
+            put("abcd", new Block() {
+
+                @Override
+                public String digest() {
+                    return "abcd";
+                }
+
+                @Override
+                public byte[] data() {
+                    return new byte[]{1, 2, 3, 4};
+                }
+            });
         }}).dnsResponse();
-        System.out.println(output);
-        Assert.assertNotEquals(-1, output.toString().indexOf("\"\\001\\002\\003\\004\""));
+        assertThat(output.toString(), containsString("\"\\001\\002\\003\\004\""));
     }
 }

@@ -3,6 +3,7 @@ package com.protocol.cdc;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.protocol.cdc.EncodedBodyChunk.DIGEST_SIZE;
 import static com.protocol.cdc.Password.SALT_SIZE;
 import static java.util.Arrays.copyOfRange;
 
@@ -27,8 +28,7 @@ public class EncodedFile {
             if (chunkSize > chunkSizeLimit) {
                 chunkSize = chunkSizeLimit;
             }
-            byte[] data = new byte[chunkSize];
-            System.arraycopy(content, pos, data, 0, chunkSize);
+            byte[] data = copyOfRange(content, pos, pos + chunkSize);
             chunks.add(new EncodedBodyChunk(password, data));
             pos += chunkSize;
         }
@@ -36,9 +36,28 @@ public class EncodedFile {
     }
 
     public List<EncodedHeadNode> head() {
+        int chunksCountLimit = (chunkSizeLimit - 1 - SALT_SIZE) / DIGEST_SIZE;
+        int firstNodeChunksCountLimit = chunksCountLimit;
+        List<EncodedBodyChunk> chunks = body();
         ArrayList<EncodedHeadNode> nodes = new ArrayList<>();
-        EncodedHeadNode node = new EncodedHeadNode(body(), null, null);
-        nodes.add(node);
+        if (chunks.size() <= firstNodeChunksCountLimit) {
+            nodes.add(new EncodedHeadNode(body(), password.salt));
+            return nodes;
+        }
+        // need room to save pointer to next node
+        firstNodeChunksCountLimit -= 1;
+        nodes.add(new EncodedHeadNode(chunks.subList(0, firstNodeChunksCountLimit), password.salt));
+        chunks = chunks.subList(firstNodeChunksCountLimit, chunks.size());
+        while (!chunks.isEmpty()) {
+            if (chunksCountLimit > chunks.size()) {
+                chunksCountLimit = chunks.size();
+            }
+            nodes.add(new EncodedHeadNode(chunks.subList(0, chunksCountLimit), null));
+            chunks = chunks.subList(chunksCountLimit, chunks.size());
+        }
+        for (int i = 0; i < nodes.size() - 1; i++) {
+            nodes.get(i).setNext(nodes.get(i + 1));
+        }
         return nodes;
     }
 }

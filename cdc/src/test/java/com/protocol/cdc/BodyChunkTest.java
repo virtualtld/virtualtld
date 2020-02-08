@@ -7,7 +7,7 @@ import static com.protocol.cdc.Digest.base64;
 import static com.protocol.cdc.Password.SALT_SIZE;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-public class EncodedBodyChunkTest {
+public class BodyChunkTest {
 
     @Test
     public void digest() {

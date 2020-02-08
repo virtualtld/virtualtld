@@ -10,13 +10,21 @@ class EncodedHeadNode {
     public final static byte FLAG_SALT = (byte) 2;
 
     private final List<EncodedBodyChunk> chunks;
-    private final EncodedHeadNode next;
+    private EncodedHeadNode next;
     private final byte[] salt;
+
+    public EncodedHeadNode(List<EncodedBodyChunk> chunks, byte[] salt) {
+        this(chunks, salt, null);
+    }
 
     public EncodedHeadNode(List<EncodedBodyChunk> chunks, byte[] salt, EncodedHeadNode next) {
         this.chunks = chunks;
         this.next = next;
         this.salt = salt;
+    }
+
+    public void setNext(EncodedHeadNode next) {
+        this.next = next;
     }
 
     private byte nodeFlag() {

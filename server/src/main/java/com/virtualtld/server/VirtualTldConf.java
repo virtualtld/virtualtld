@@ -21,9 +21,17 @@ public class VirtualTldConf {
     public List<PathMatcher> fileWhitelist = new ArrayList<>();
     public List<PathMatcher> directoryBlacklist = new ArrayList<>();
 
+    public WebFiles.Options webFilesOptions() {
+        WebFiles.Options options = new WebFiles.Options();
+        options.fileBlacklist = fileBlacklist;
+        options.fileWhitelist = fileWhitelist;
+        options.directoryBlacklist = directoryBlacklist;
+        return options;
+    }
 
-    public static VirtualTldConf parse(String webrootDir) {
-        Path path = Paths.get(webrootDir, "virtualtld.conf");
+
+    public static VirtualTldConf parse(Path webRoot) {
+        Path path = webRoot.resolve("virtualtld.conf");
         if (!Files.exists(path)) {
             throw new RuntimeException(path + " did not found");
         }

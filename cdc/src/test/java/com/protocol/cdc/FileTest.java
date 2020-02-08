@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.is;
 public class FileTest {
     @Test
     public void body_has_one_chunk() {
-        EncodedFile encodedFile = new EncodedFile("最新版本.xyz", "hello".getBytes());
+        EncodedFile encodedFile = newEncodedFile("hello".getBytes());
         List<EncodedBodyChunk> chunks = encodedFile.body();
         Assert.assertThat(chunks.size(), is(1));
         Assert.assertThat(chunks.get(0).decodedData(), equalTo("hello".getBytes()));
@@ -23,7 +23,7 @@ public class FileTest {
 
     @Test
     public void body_has_two_chunks() {
-        EncodedFile encodedFile = new EncodedFile("最新版本.xyz", new byte[512]);
+        EncodedFile encodedFile = newEncodedFile(new byte[512]);
         List<EncodedBodyChunk> chunks = encodedFile.body();
         Assert.assertThat(chunks.size(), is(2));
         EncodedBodyChunk chunk1 = chunks.get(0);
@@ -38,7 +38,7 @@ public class FileTest {
 
     @Test
     public void head_has_one_node() {
-        EncodedFile encodedFile = new EncodedFile("最新版本.xyz", new byte[512]);
+        EncodedFile encodedFile = newEncodedFile(new byte[512]);
         List<EncodedHeadNode> nodes = encodedFile.head();
         Assert.assertThat(nodes.size(), is(1));
         DecodedHeadNode node = new DecodedHeadNode(nodes.get(0).data());
@@ -51,7 +51,7 @@ public class FileTest {
 
     @Test
     public void head_has_two_nodes() {
-        EncodedFile encodedFile = new EncodedFile("最新版本.xyz", new byte[9052]);
+        EncodedFile encodedFile = newEncodedFile(new byte[9052]);
         List<EncodedHeadNode> nodes = encodedFile.head();
         Assert.assertThat(nodes.size(), is(2));
         DecodedHeadNode node1 = new DecodedHeadNode(nodes.get(0).data());
@@ -62,7 +62,7 @@ public class FileTest {
 
     @Test
     public void head_has_three_nodes() {
-        EncodedFile encodedFile = new EncodedFile("最新版本.xyz", new byte[17672]);
+        EncodedFile encodedFile = newEncodedFile(new byte[17672]);
         List<EncodedHeadNode> nodes = encodedFile.head();
         Assert.assertThat(nodes.size(), is(3));
         DecodedHeadNode node1 = new DecodedHeadNode(nodes.get(0).data());
@@ -71,5 +71,10 @@ public class FileTest {
         Assert.assertThat(node2.flag(), equalTo(FLAG_NEXT));
         DecodedHeadNode node3 = new DecodedHeadNode(nodes.get(2).data());
         Assert.assertThat(node3.flag(), equalTo((byte) 0));
+    }
+
+    private static EncodedFile newEncodedFile(byte[] content) {
+        CdcSite site = new CdcSite("最新版本.com", "最新版本.xyz");
+        return new EncodedFile(site, content);
     }
 }

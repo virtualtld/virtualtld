@@ -8,13 +8,11 @@ import org.xbill.DNS.Section;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-import java.net.IDN;
-
 public class ChunkSizeLimit {
 
-    private final String privateDomain;
+    private final Name privateDomain;
 
-    public ChunkSizeLimit(String privateDomain) {
+    public ChunkSizeLimit(Name privateDomain) {
         this.privateDomain = privateDomain;
     }
 
@@ -38,7 +36,7 @@ public class ChunkSizeLimit {
     }
 
     private int baseSize() throws TextParseException {
-        Name name = Name.fromString(IDN.toASCII("n7B5G0YvpBA0elSBz5OLbBTbJnU=." + privateDomain + "."));
+        Name name = new Name("n7B5G0YvpBA0elSBz5OLbBTbJnU=", privateDomain);
         Message message = new Message();
         message.addRecord(Record.newRecord(name, Type.TXT, DClass.IN, 1024), Section.QUESTION);
         message.addRecord(Record.newRecord(name, Type.TXT, DClass.IN, 1024, new byte[]{0}), Section.ANSWER);

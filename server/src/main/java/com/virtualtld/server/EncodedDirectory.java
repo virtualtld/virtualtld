@@ -1,15 +1,12 @@
 package com.virtualtld.server;
 
 import com.protocol.cdc.Block;
-import com.protocol.cdc.VirtualtldSite;
 import com.protocol.cdc.EncodedFile;
-import com.protocol.cdc.EncodedHeadNode;
-import com.protocol.cdc.EncodedPath;
+import com.protocol.cdc.VirtualtldSite;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class EncodedDirectory {
@@ -39,16 +36,11 @@ public class EncodedDirectory {
     private Map<String, Block> _blocks() throws Exception {
         Map<String, Block> blocks = new HashMap<>();
         for (Map.Entry<String, Path> entry : files().entrySet()) {
-            EncodedFile file = new EncodedFile(site, Files.readAllBytes(entry.getValue()));
-            List<EncodedHeadNode> head = file.head();
-            for (Block block : head) {
+            byte[] content = Files.readAllBytes(entry.getValue());
+            EncodedFile file = new EncodedFile(site, entry.getKey(), content);
+            for (Block block : file.blocks()) {
                 blocks.put(block.digest(), block);
             }
-            for (Block block : file.body()) {
-                blocks.put(block.digest(), block);
-            }
-            EncodedPath path = new EncodedPath(site.publicDomain, entry.getKey(), head.get(0));
-            blocks.put(path.digest(), path);
         }
         return blocks;
     }

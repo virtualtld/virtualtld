@@ -4,12 +4,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-public class ConcurrentHandler implements Consumer<DnsRequest> {
+public class HandleConcurrently implements Consumer<DnsRequest> {
 
     private final Consumer<DnsRequest> handler;
     private final ExecutorService executorService;
 
-    public ConcurrentHandler(Consumer<DnsRequest> handler, int nThreads) {
+    public HandleConcurrently(Consumer<DnsRequest> handler, int nThreads) {
         this.handler = handler;
         executorService = Executors.newFixedThreadPool(nThreads);
     }

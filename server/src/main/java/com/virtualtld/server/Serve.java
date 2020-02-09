@@ -18,9 +18,9 @@ public class Serve {
         VirtualtldSite site = new VirtualtldSite(conf.publicDomain, conf.privateDomain);
         Map<String, Block> blocks = new EncodedDirectory(site, webRoot, conf.webFilesOptions()).blocks();
         System.out.println("loaded blocks: " + blocks.keySet());
-        CdcRequestHandler cdcRequestHandler = new CdcRequestHandler(nsResp, blocks);
-        ConcurrentHandler concurrentHandler = new ConcurrentHandler(cdcRequestHandler, 8);
+        HandleCdcRequest handleCdcRequest = new HandleCdcRequest(nsResp, blocks);
+        HandleConcurrently handleConcurrently = new HandleConcurrently(handleCdcRequest, 8);
         System.out.println("list at " + conf.listenAt);
-        new DnsServer(conf.listenAt, concurrentHandler).start();
+        new DnsServer(conf.listenAt, handleConcurrently).start();
     }
 }

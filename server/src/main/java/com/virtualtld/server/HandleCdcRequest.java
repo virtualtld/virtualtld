@@ -10,12 +10,12 @@ import java.net.DatagramPacket;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class CdcRequestHandler implements Consumer<DnsRequest> {
-    private final static Logger logger = LoggerFactory.getLogger(CdcRequestHandler.class);
+public class HandleCdcRequest implements Consumer<DnsRequest> {
+    private final static Logger logger = LoggerFactory.getLogger(HandleCdcRequest.class);
     private final Message nsResp;
     private final Map<String, Block> blocks;
 
-    public CdcRequestHandler(Message nsResp, Map<String, Block> blocks) {
+    public HandleCdcRequest(Message nsResp, Map<String, Block> blocks) {
         this.nsResp = nsResp;
         this.blocks = blocks;
     }

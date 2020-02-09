@@ -8,7 +8,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
-public class Password {
+class Password {
 
     public final static int SALT_SIZE = 8;
     private final SecretKey secretKey;

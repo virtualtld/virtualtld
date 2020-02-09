@@ -1,7 +1,7 @@
 package com.virtualtld.server;
 
 import com.protocol.cdc.Block;
-import com.protocol.cdc.CdcSite;
+import com.protocol.cdc.VirtualtldSite;
 import com.protocol.cdc.EncodedFile;
 import com.protocol.cdc.EncodedHeadNode;
 import com.protocol.cdc.EncodedPath;
@@ -15,10 +15,10 @@ import java.util.Map;
 public class EncodedDirectory {
 
     private final Path webRoot;
-    private final CdcSite site;
+    private final VirtualtldSite site;
     private final WebFiles.Options options;
 
-    public EncodedDirectory(CdcSite site, Path webRoot, WebFiles.Options options) {
+    public EncodedDirectory(VirtualtldSite site, Path webRoot, WebFiles.Options options) {
         this.webRoot = webRoot;
         this.site = site;
         this.options = options;

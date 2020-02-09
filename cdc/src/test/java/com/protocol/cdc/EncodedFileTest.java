@@ -74,7 +74,7 @@ public class EncodedFileTest {
     }
 
     private static EncodedFile newEncodedFile(byte[] content) {
-        CdcSite site = new CdcSite("最新版本.com", "最新版本.xyz");
+        VirtualtldSite site = new VirtualtldSite("最新版本.com", "最新版本.xyz");
         return new EncodedFile(site, content);
     }
 }

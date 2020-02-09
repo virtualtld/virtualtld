@@ -4,7 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-public class Digest {
+class Digest {
 
     public static String sha1(byte[] chunk1, byte[] chunk2) {
         MessageDigest crypt = sha1();

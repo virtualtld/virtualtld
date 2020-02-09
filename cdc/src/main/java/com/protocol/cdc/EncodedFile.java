@@ -1,7 +1,5 @@
 package com.protocol.cdc;
 
-import org.xbill.DNS.Name;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,15 +9,13 @@ import static java.util.Arrays.copyOfRange;
 
 public class EncodedFile {
 
-    private final Name privateDomain;
     private final Password password;
     private final int chunkSizeLimit;
     private final byte[] content;
 
-    public EncodedFile(CdcSite site, byte[] content) {
+    public EncodedFile(VirtualtldSite site, byte[] content) {
         byte[] salt = copyOfRange(Digest.sha1Bytes(content), 0, SALT_SIZE);
         this.password = new Password(site.publicDomain.toString(), salt);
-        this.privateDomain = site.privateDomain;
         chunkSizeLimit = new ChunkSizeLimit(site.privateDomain).limit();
         this.content = content;
     }

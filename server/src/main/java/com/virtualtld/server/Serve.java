@@ -1,7 +1,7 @@
 package com.virtualtld.server;
 
 import com.protocol.cdc.Block;
-import com.protocol.cdc.CdcSite;
+import com.protocol.cdc.VirtualtldSite;
 
 import org.xbill.DNS.Message;
 
@@ -15,7 +15,7 @@ public class Serve {
         System.out.println("serve webroot: " + webRoot);
         VirtualTldConf conf = VirtualTldConf.parse(webRoot);
         Message nsResp = new NsResponse(conf).nsResponse();
-        CdcSite site = new CdcSite(conf.publicDomain, conf.privateDomain);
+        VirtualtldSite site = new VirtualtldSite(conf.publicDomain, conf.privateDomain);
         Map<String, Block> blocks = new EncodedDirectory(site, webRoot, conf.webFilesOptions()).blocks();
         System.out.println("loaded blocks: " + blocks.keySet());
         CdcRequestHandler cdcRequestHandler = new CdcRequestHandler(nsResp, blocks);

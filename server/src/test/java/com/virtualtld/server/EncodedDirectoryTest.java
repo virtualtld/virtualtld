@@ -3,7 +3,7 @@ package com.virtualtld.server;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.protocol.cdc.Block;
-import com.protocol.cdc.CdcSite;
+import com.protocol.cdc.VirtualtldSite;
 
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public class EncodedDirectoryTest {
     }
 
     private static EncodedDirectory newEncodedDirectory(Path webRoot) {
-        CdcSite site = new CdcSite("最新版本.com", "最新版本.xyz");
+        VirtualtldSite site = new VirtualtldSite("最新版本.com", "最新版本.xyz");
         return new EncodedDirectory(site, webRoot, new WebFiles.Options());
     }
 }

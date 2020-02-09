@@ -8,7 +8,7 @@ import org.xbill.DNS.Section;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public class ChunkSizeLimit {
+class ChunkSizeLimit {
 
     private final Name privateDomain;
 

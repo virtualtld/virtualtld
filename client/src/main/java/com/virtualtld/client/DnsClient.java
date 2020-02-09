@@ -11,10 +11,9 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class DnsClient implements BiConsumer<Message, InetSocketAddress> {
+public class DnsClient {
 
     private final static ExecutorService executorService = Executors.newWorkStealingPool();
     private final static Logger LOGGER = LoggerFactory.getLogger(DnsClient.class);
@@ -33,14 +32,14 @@ public class DnsClient implements BiConsumer<Message, InetSocketAddress> {
     public void start() {
         executorService.submit(() -> {
             try {
-                _start();
+                run();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
-    private void _start() throws Exception {
+    private void run() throws Exception {
         DatagramPacket packet = new DatagramPacket(new byte[512], 512);
         while (true) {
             sock.receive(packet);
@@ -59,11 +58,10 @@ public class DnsClient implements BiConsumer<Message, InetSocketAddress> {
         }
     }
 
-    @Override
-    public void accept(Message req, InetSocketAddress resolverAddr) {
+    public void send(Message req, InetSocketAddress addr) {
         byte[] reqBytes = req.toWire();
         try {
-            sock.send(new DatagramPacket(reqBytes, reqBytes.length, resolverAddr));
+            sock.send(new DatagramPacket(reqBytes, reqBytes.length, addr));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

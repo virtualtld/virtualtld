@@ -7,10 +7,15 @@ import org.xbill.DNS.Message;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
 public class DnsClient {
@@ -54,12 +59,17 @@ public class DnsClient {
         while (true) {
             sock.receive(packet);
             Message resp = new Message(packet.getData());
-            try {
-                respHandler.accept(resp);
-                resender.remove(resp.getHeader().getID());
-            } catch (Exception e) {
-                LOGGER.debug("failed to handle response: \n" + resp, e);
-            }
+            onResponse(resp, packet.getAddress(), packet.getPort());
+        }
+    }
+
+    private synchronized void onResponse(Message resp, InetAddress remoteIp, int remotePort) {
+        LOGGER.info("received response from " + remoteIp + ":" + remotePort + "\n" + resp);
+        try {
+            respHandler.accept(resp);
+            resender.remove(resp.getHeader().getID());
+        } catch (Exception e) {
+            LOGGER.debug("failed to handle response: \n" + resp, e);
         }
     }
 
@@ -68,7 +78,7 @@ public class DnsClient {
             return;
         }
         byte[] reqBytes = dnsRequest.message.toWire();
-        for (InetSocketAddress addr : dnsRequest.candidateServers) {
+        for (InetSocketAddress addr : pickThree(dnsRequest.candidateServers)) {
             try {
                 sock.send(new DatagramPacket(reqBytes, reqBytes.length, addr));
             } catch (IOException e) {
@@ -78,7 +88,20 @@ public class DnsClient {
     }
 
     public void send(DnsRequest dnsRequest) {
+        LOGGER.info("sent request\n" + dnsRequest.message);
         resender.add(dnsRequest);
         doSend(dnsRequest);
+    }
+
+    private static List<InetSocketAddress> pickThree(List<InetSocketAddress> candidateServers) {
+        Random rand = ThreadLocalRandom.current();
+        List<InetSocketAddress> list = new ArrayList<>(candidateServers);
+        List<InetSocketAddress> picked = new ArrayList<>();
+        for (int i = 0; i < Math.min(3, candidateServers.size()); i++) {
+            int randomIndex = rand.nextInt(list.size());
+            picked.add(list.get(randomIndex));
+            list.remove(randomIndex);
+        }
+        return picked;
     }
 }

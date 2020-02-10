@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class HandleCdcRequest implements Consumer<DnsRequest> {
-    private final static Logger logger = LoggerFactory.getLogger(HandleCdcRequest.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(HandleCdcRequest.class);
     private final Message nsResp;
     private final Map<String, Block> blocks;
 
@@ -25,15 +25,15 @@ public class HandleCdcRequest implements Consumer<DnsRequest> {
         try {
             this.handle(req);
         } catch (Exception e) {
-            logger.error("handle dns request failed", e);
+            LOGGER.error("handle dns request failed", e);
         }
     }
 
     private void handle(DnsRequest req) throws Exception {
         Message input = new Message(req.packet.getData());
-        logger.info("input\n" + input);
+        LOGGER.info("input\n" + input);
         Message output = new CdcResponse(input, nsResp, blocks).dnsResponse();
-        logger.info("output\n" + output);
+        LOGGER.info("output\n" + output);
         byte[] outputBytes = output.toWire();
         req.socket.send(new DatagramPacket(outputBytes, outputBytes.length, req.packet.getSocketAddress()));
     }

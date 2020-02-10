@@ -11,6 +11,7 @@ import org.xbill.DNS.Section;
 import org.xbill.DNS.Type;
 
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.concurrent.Exchanger;
 
 import static org.hamcrest.Matchers.emptyArray;
@@ -42,7 +43,8 @@ public class DnsClientTest {
     @Test
     public void query_once() throws Exception {
         Record record = Record.newRecord(Name.fromString("microsoft.com."), Type.A, DClass.IN);
-        dnsClient.send(Message.newQuery(record), new InetSocketAddress("1.1.1.1", 53));
+        dnsClient.send(new DnsRequest(Message.newQuery(record),
+                Collections.singletonList(new InetSocketAddress("1.1.1.1", 53))));
         Message resp = respExchange.exchange(null);
         assertThat(resp.getSectionArray(Section.ANSWER), not(emptyArray()));
     }

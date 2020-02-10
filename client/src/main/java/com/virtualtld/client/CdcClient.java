@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 
 public class CdcClient {
 
-    private final ResilientDnsClient dnsClient = new ResilientDnsClient(this::onResponse);
+    private final DnsClient dnsClient = new DnsClient(this::onResponse);
 
     private synchronized void onResponse(Message resp) {
 

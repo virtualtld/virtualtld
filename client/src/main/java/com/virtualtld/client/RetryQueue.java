@@ -56,7 +56,11 @@ public class RetryQueue {
         }
         if (now >= item.shouldRetryAt) {
             priorityQueue.remove(item);
-            addItem(item.retry());
+            if (item.alreadyRetriedTimes >= schedule.length) {
+                item.req.dropped = true;
+            } else {
+                addItem(item.retry());
+            }
             return item.req;
         }
         return null;

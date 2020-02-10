@@ -18,6 +18,8 @@ public class DnsClient {
     private final static ExecutorService executorService = Executors.newWorkStealingPool();
     private final static Logger LOGGER = LoggerFactory.getLogger(DnsClient.class);
     private final Consumer<Message> respHandler;
+    private final DnsResender resender = new DnsResender(
+            this::doSend, new int[]{100, 200, 400, 800, 1600});
     private DatagramSocket sock;
 
     public DnsClient(Consumer<Message> respHandler) {
@@ -30,6 +32,7 @@ public class DnsClient {
     }
 
     public void start() {
+        resender.start();
         executorService.submit(() -> {
             try {
                 run();
@@ -39,6 +42,13 @@ public class DnsClient {
         });
     }
 
+    public void stop() {
+        resender.stop();
+        if (sock != null) {
+            sock.close();
+        }
+    }
+
     private void run() throws Exception {
         DatagramPacket packet = new DatagramPacket(new byte[512], 512);
         while (true) {
@@ -46,24 +56,29 @@ public class DnsClient {
             Message resp = new Message(packet.getData());
             try {
                 respHandler.accept(resp);
+                resender.remove(resp.getHeader().getID());
             } catch (Exception e) {
                 LOGGER.debug("failed to handle response: \n" + resp, e);
             }
         }
     }
 
-    public void stop() {
-        if (sock != null) {
-            sock.close();
+    private void doSend(DnsRequest dnsRequest) {
+        if (dnsRequest.dropped) {
+            return;
+        }
+        byte[] reqBytes = dnsRequest.message.toWire();
+        for (InetSocketAddress addr : dnsRequest.candidateServers) {
+            try {
+                sock.send(new DatagramPacket(reqBytes, reqBytes.length, addr));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    public void send(Message req, InetSocketAddress addr) {
-        byte[] reqBytes = req.toWire();
-        try {
-            sock.send(new DatagramPacket(reqBytes, reqBytes.length, addr));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void send(DnsRequest dnsRequest) {
+        resender.add(dnsRequest);
+        doSend(dnsRequest);
     }
 }

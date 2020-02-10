@@ -73,4 +73,17 @@ public class RetryQueueTest {
         assertThat(retryQueue.retryNext(102), equalTo(req1));
         assertThat(retryQueue.retryNext(102), equalTo(null));
     }
+
+    @Test
+    public void dropped_item() {
+        RetryQueue retryQueue = new RetryQueue(new int[]{1});
+        DnsRequest req = new DnsRequest(new Message(), new ArrayList<>()) {{
+            createdAt = 100;
+        }};
+        retryQueue.add(req);
+        assertThat(retryQueue.retryNext(101), equalTo(req));
+        assertThat(req.dropped, equalTo(false));
+        assertThat(retryQueue.retryNext(102), equalTo(req));
+        assertThat(req.dropped, equalTo(true));
+    }
 }

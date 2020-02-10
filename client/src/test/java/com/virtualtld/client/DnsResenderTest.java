@@ -14,12 +14,11 @@ public class DnsResenderTest {
     @Test
     public void resend_after_timeout() throws Exception {
         AtomicBoolean retried = new AtomicBoolean(false);
-        DnsResender dnsResender = new DnsResender((req) -> {
-            retried.set(true);
-        }, new int[]{1});
+        DnsResender dnsResender = new DnsResender((req) -> retried.set(true), new int[]{1});
         dnsResender.add(new DnsRequest(new Message(), new ArrayList<>()));
         dnsResender.start();
         Thread.sleep(100);
         assertThat(retried.get(), equalTo(true));
+        dnsResender.stop();
     }
 }

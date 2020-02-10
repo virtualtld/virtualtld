@@ -9,17 +9,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class RetryWatcherTest {
+public class DnsResenderTest {
 
     @Test
     public void resend_after_timeout() throws Exception {
         AtomicBoolean retried = new AtomicBoolean(false);
-        RetryWatcher retryWatcher = new RetryWatcher((msg, addr) -> {
+        DnsResender dnsResender = new DnsResender((req) -> {
             retried.set(true);
         }, new int[]{1});
-        retryWatcher.addItem(new RetryWatcher.Item(
-                new Message(), new ArrayList<>(), 0));
-        retryWatcher.start();
+        dnsResender.add(new DnsRequest(new Message(), new ArrayList<>()));
+        dnsResender.start();
         Thread.sleep(100);
         assertThat(retried.get(), equalTo(true));
     }

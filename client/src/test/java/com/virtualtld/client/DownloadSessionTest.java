@@ -11,12 +11,14 @@ import org.xbill.DNS.Type;
 
 import java.net.IDN;
 import java.net.Inet4Address;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 public class DownloadSessionTest {
@@ -28,17 +30,24 @@ public class DownloadSessionTest {
                 new URI("virtualtld://最新版本.com/"), requests::add);
         // request 1
         assertThat(requests, hasSize(1));
-        assertThat(requests.get(0).message.getQuestion().getName(),
+        DnsRequest req1 = requests.get(0);
+        assertThat(req1.message.getQuestion().getName(),
                 equalTo(Name.fromString(IDN.toASCII("最新版本.com."))));
         // response 1
-        Message resp = new Message(requests.get(0).getID());
-        resp.addRecord(Record.newRecord(
+        Message resp1 = new Message(req1.getID());
+        resp1.addRecord(Record.newRecord(
                 Name.fromString(IDN.toASCII("最新版本.com.")), Type.NS, DClass.IN),
                 Section.QUESTION);
-        resp.addRecord(new ARecord(Name.fromString("a.gtld-servers.net."), DClass.IN, 172800,
+        resp1.addRecord(new ARecord(Name.fromString("a.gtld-servers.net."), DClass.IN, 172800,
                 Inet4Address.getByName("192.5.6.30")), Section.ADDITIONAL);
-        session.onResponse(resp);
+        session.onResponse(resp1);
         // request 2
         assertThat(requests, hasSize(2));
+        DnsRequest req2 = requests.get(1);
+        assertThat(req2.message.getQuestion().getName(),
+                equalTo(Name.fromString(IDN.toASCII("最新版本.com."))));
+        List<InetSocketAddress> servers = Collections.singletonList(
+                new InetSocketAddress("192.5.6.30", 53));
+        assertThat(req2.candidateServers, equalTo(servers));
     }
 }

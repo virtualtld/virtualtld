@@ -3,6 +3,7 @@ package com.virtualtld.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xbill.DNS.Message;
+import org.xbill.DNS.Rcode;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -65,11 +66,16 @@ public class DnsClient {
 
     private synchronized void onResponse(Message resp, InetAddress remoteIp, int remotePort) {
         LOGGER.info("received response from " + remoteIp + ":" + remotePort + "\n" + resp);
+        if (resp.getRcode() != Rcode.NOERROR) {
+            LOGGER.warn("response rcode is not NOERROR: "
+                    + Rcode.TSIGstring(resp.getRcode()));
+            return;
+        }
         try {
             respHandler.accept(resp);
             resender.remove(resp.getHeader().getID());
         } catch (Exception e) {
-            LOGGER.debug("failed to handle response: \n" + resp, e);
+            LOGGER.warn("failed to handle response: \n" + resp, e);
         }
     }
 

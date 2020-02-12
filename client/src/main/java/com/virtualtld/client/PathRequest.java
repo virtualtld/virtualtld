@@ -11,15 +11,17 @@ import org.xbill.DNS.Type;
 import java.net.IDN;
 import java.net.URI;
 
-public class NsRequest {
+public class PathRequest {
 
     private final URI uri;
+    private final Name privateDomain;
 
-    public NsRequest(URI uri) {
+    public PathRequest(URI uri, Name privateDomain) {
         this.uri = uri;
+        this.privateDomain = privateDomain;
     }
 
-    public Message nsRequest() {
+    public Message pathRequest() {
         try {
             return _nsRequest();
         } catch (Exception e) {
@@ -34,7 +36,7 @@ public class NsRequest {
         Name publicDomain = Name.fromString(IDN.toASCII(uri.getAuthority() + "."));
         String digest = new EncodedPath(publicDomain, uri.getPath()).digest();
         return Message.newQuery(Record.newRecord(
-                new Name(digest, publicDomain), Type.NS, DClass.IN));
+                new Name(digest, privateDomain), Type.NS, DClass.IN));
     }
 }
 

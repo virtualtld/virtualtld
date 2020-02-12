@@ -40,8 +40,6 @@ public class CdcClient {
     }
 
     public synchronized void download(URI uri, Consumer<byte[]> callback) {
-        NsRequest nsRequest = new NsRequest(uri);
-        dnsClient.send(new DnsRequest(nsRequest.nsRequest(), ROOT_NAME_SERVERS));
     }
 
 

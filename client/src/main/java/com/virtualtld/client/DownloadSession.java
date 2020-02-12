@@ -4,7 +4,6 @@ import org.xbill.DNS.ARecord;
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Name;
-import org.xbill.DNS.Rcode;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.Section;
 import org.xbill.DNS.Type;
@@ -42,6 +41,8 @@ public class DownloadSession {
     private final URI uri;
     private DnsRequest rootNameRequest;
     private DnsRequest tldNameRequest;
+    private DnsRequest pathRequest;
+    private DecodedSite site;
 
     public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest) {
         this.uri = uri;
@@ -64,8 +65,20 @@ public class DownloadSession {
             }
         }
         tldNameRequest = createNameRequest(servers);
+        handlers.put(tldNameRequest.getID(), this::onTldNameResponse);
         sendRequest.accept(tldNameRequest);
     }
+
+    private void onTldNameResponse(Message resp) {
+        if (pathRequest != null) {
+            return;
+        }
+        site = new DecodedSite(resp);
+        pathRequest = new DnsRequest(new PathRequest(uri, site.privateDomain()).pathRequest(),
+                site.privateResolvers());
+        sendRequest.accept(pathRequest);
+    }
+
 
     private DnsRequest createNameRequest(List<InetSocketAddress> candidateServers) {
         try {

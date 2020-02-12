@@ -75,6 +75,17 @@ public class DownloadSessionTest {
         assertThat(req3.message.getQuestion().getName(),
                 equalTo(Name.fromString(IDN.toASCII("r8eMbUUdjj2cPfqeMwBJG8amEPQ=.最新版本.xyz."))));
         // response 3
+        replyBlock(session, blocks, req3);
+        // request 4
+        assertThat(requests, hasSize(4));
+        DnsRequest req4 = requests.get(3);
+        assertThat(req4.message.getQuestion().getName(),
+                equalTo(Name.fromString(IDN.toASCII("TO9Gzqx3xeDuNvcF3AFDR6w3ODo=.最新版本.xyz."))));
+        // response 4
+        replyBlock(session, blocks, req4);
+    }
+
+    private void replyBlock(DownloadSession session, HashMap<String, Block> blocks, DnsRequest req3) {
         Message resp3 = new Message(req3.getID());
         resp3.addRecord(req3.message.getQuestion(), Section.QUESTION);
         Name reqName = req3.message.getQuestion().getName();

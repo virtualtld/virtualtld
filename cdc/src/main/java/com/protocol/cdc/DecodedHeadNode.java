@@ -22,11 +22,11 @@ public class DecodedHeadNode {
     }
 
     public byte[] salt() {
-        if ((flag() & FLAG_SALT) == 0) {
+        if (!hasSalt()) {
             throw new RuntimeException("no salt");
         }
         int baseOffset = 1;
-        if ((flag() & FLAG_NEXT) != 0) {
+        if (hasNext()) {
             baseOffset += DIGEST_SIZE;
         }
         return copyOfRange(encodedData, baseOffset, baseOffset + SALT_SIZE);
@@ -34,10 +34,10 @@ public class DecodedHeadNode {
 
     public List<String> chunkDigests() {
         int baseOffset = 1;
-        if ((flag() & FLAG_SALT) != 0) {
+        if (hasSalt()) {
             baseOffset += SALT_SIZE;
         }
-        if ((flag() & FLAG_NEXT) != 0) {
+        if (hasNext()) {
             baseOffset += DIGEST_SIZE;
         }
         int chunksCount = (encodedData.length - baseOffset) / DIGEST_SIZE;
@@ -50,9 +50,17 @@ public class DecodedHeadNode {
     }
 
     public String nextDigest() {
-        if ((flag() & FLAG_NEXT) == 0) {
+        if (!hasNext()) {
             throw new RuntimeException("no next");
         }
         return base64(copyOfRange(encodedData, 1, 1 + DIGEST_SIZE));
+    }
+
+    public boolean hasSalt() {
+        return (flag() & FLAG_SALT) != 0;
+    }
+
+    public boolean hasNext() {
+        return (flag() & FLAG_NEXT) != 0;
     }
 }

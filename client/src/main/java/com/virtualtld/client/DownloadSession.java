@@ -1,11 +1,16 @@
 package com.virtualtld.client;
 
+import com.protocol.cdc.DecodedHeadNode;
+import com.protocol.cdc.DecodedTxtRecord;
+
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Name;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.Section;
+import org.xbill.DNS.TXTRecord;
+import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
 import java.net.IDN;
@@ -15,8 +20,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class DownloadSession {
@@ -43,6 +50,8 @@ public class DownloadSession {
     private DnsRequest tldNameRequest;
     private DnsRequest pathRequest;
     private DecodedSite site;
+    private Set<String> digestRequests = new HashSet<>();
+    private byte[] salt;
 
     public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest) {
         this.uri = uri;
@@ -76,7 +85,46 @@ public class DownloadSession {
         site = new DecodedSite(resp);
         pathRequest = new DnsRequest(new PathRequest(uri, site.privateDomain()).pathRequest(),
                 site.privateResolvers());
+        handlers.put(pathRequest.getID(), this::onFirstHeadNodeResponse);
         sendRequest.accept(pathRequest);
+    }
+
+    private void onFirstHeadNodeResponse(Message resp) {
+        TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
+        DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
+        DecodedHeadNode node = new DecodedHeadNode(decodedTxtRecord.data());
+        salt = node.salt();
+        onHeadNode(node);
+    }
+
+    private void onHeadNodeResponse(Message resp) {
+        TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
+        DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
+        DecodedHeadNode node = new DecodedHeadNode(decodedTxtRecord.data());
+        onHeadNode(node);
+    }
+
+    private void onBodyChunkResponse(Message resp) {
+        TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
+        DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
+        System.out.println(decodedTxtRecord.data());
+    }
+
+    private void onHeadNode(DecodedHeadNode node) {
+        for (String chunkDigest : node.chunkDigests()) {
+            if (digestRequests.contains(chunkDigest)) {
+                continue;
+            }
+            try {
+                Record record = Record.newRecord(new Name(chunkDigest, site.privateDomain()),
+                        Type.TXT, DClass.IN);
+                DnsRequest req = new DnsRequest(Message.newQuery(record), site.privateResolvers());
+                handlers.put(req.getID(), this::onBodyChunkResponse);
+                sendRequest.accept(req);
+            } catch (TextParseException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 

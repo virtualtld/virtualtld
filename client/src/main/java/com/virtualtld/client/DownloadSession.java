@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 
@@ -46,7 +47,7 @@ public class DownloadSession {
             new InetSocketAddress("202.12.27.33", 53)
     );
     private final Consumer<DnsRequest> sendRequest;
-    private final Consumer<byte[]> onDownloaded;
+    private final BiConsumer<DownloadSession, byte[]> onDownloaded;
     private final Map<Integer, Consumer<Message>> handlers = new HashMap<>();
     private final URI uri;
     private DnsRequest rootNameRequest;
@@ -59,7 +60,7 @@ public class DownloadSession {
     private Name publicDomain;
     private boolean allHeadNodesReceived;
 
-    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest, Consumer<byte[]> onDownloaded) {
+    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest, BiConsumer<DownloadSession, byte[]> onDownloaded) {
         this.uri = uri;
         this.sendRequest = sendRequest;
         this.onDownloaded = onDownloaded;
@@ -117,7 +118,7 @@ public class DownloadSession {
         byte[] bytes = password.decrypt(decodedTxtRecord.data());
         chunkResponses.put(chunkIndex, bytes);
         if (allHeadNodesReceived && chunkRequests.size() == chunkResponses.size()) {
-            onDownloaded.accept(result());
+            onDownloaded.accept(this, result());
         }
     }
 

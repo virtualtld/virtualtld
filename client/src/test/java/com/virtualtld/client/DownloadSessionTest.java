@@ -41,7 +41,7 @@ public class DownloadSessionTest {
         }
         List<DnsRequest> requests = new ArrayList<>();
         DownloadSession session = new DownloadSession(
-                new URI("virtualtld://最新版本.com/"), requests::add, result -> {
+                new URI("virtualtld://最新版本.com/"), requests::add, (s, result) -> {
             downloaded = true;
             assertThat(new String(result), equalTo("hello"));
         });

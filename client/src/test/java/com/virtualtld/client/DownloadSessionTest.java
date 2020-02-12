@@ -28,6 +28,8 @@ import static org.junit.Assert.assertThat;
 
 public class DownloadSessionTest {
 
+    private boolean downloaded;
+
     @Test
     public void happy_path() throws Exception {
         EncodedFile encodedFile = new EncodedFile(new VirtualtldSite(
@@ -39,7 +41,10 @@ public class DownloadSessionTest {
         }
         List<DnsRequest> requests = new ArrayList<>();
         DownloadSession session = new DownloadSession(
-                new URI("virtualtld://最新版本.com/"), requests::add);
+                new URI("virtualtld://最新版本.com/"), requests::add, result -> {
+            downloaded = true;
+            assertThat(new String(result), equalTo("hello"));
+        });
         // request 1
         assertThat(requests, hasSize(1));
         DnsRequest req1 = requests.get(0);
@@ -83,6 +88,8 @@ public class DownloadSessionTest {
                 equalTo(Name.fromString(IDN.toASCII("TO9Gzqx3xeDuNvcF3AFDR6w3ODo=.最新版本.xyz."))));
         // response 4
         replyBlock(session, blocks, req4);
+        assertThat(downloaded, equalTo(true));
+
     }
 
     private void replyBlock(DownloadSession session, HashMap<String, Block> blocks, DnsRequest req3) {

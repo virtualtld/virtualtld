@@ -2,6 +2,7 @@ package com.virtualtld.client;
 
 import com.protocol.cdc.DecodedHeadNode;
 import com.protocol.cdc.DecodedTxtRecord;
+import com.protocol.cdc.Password;
 
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.DClass;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+
 public class DownloadSession {
 
     private final static List<InetSocketAddress> ROOT_NAME_SERVERS = Arrays.asList(
@@ -44,18 +46,23 @@ public class DownloadSession {
             new InetSocketAddress("202.12.27.33", 53)
     );
     private final Consumer<DnsRequest> sendRequest;
+    private final Consumer<byte[]> onDownloaded;
     private final Map<Integer, Consumer<Message>> handlers = new HashMap<>();
     private final URI uri;
     private DnsRequest rootNameRequest;
     private DnsRequest tldNameRequest;
     private DnsRequest pathRequest;
     private DecodedSite site;
-    private Set<String> digestRequests = new HashSet<>();
-    private byte[] salt;
+    private Set<String> chunkRequests = new HashSet<>();
+    private Map<Integer, byte[]> chunkResponses = new HashMap<>();
+    private Password password;
+    private Name publicDomain;
+    private boolean allHeadNodesReceived;
 
-    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest) {
+    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest, Consumer<byte[]> onDownloaded) {
         this.uri = uri;
         this.sendRequest = sendRequest;
+        this.onDownloaded = onDownloaded;
         rootNameRequest = createNameRequest(ROOT_NAME_SERVERS);
         handlers.put(rootNameRequest.getID(), this::onRootNameResponse);
         sendRequest.accept(rootNameRequest);
@@ -93,7 +100,7 @@ public class DownloadSession {
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
         DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
         DecodedHeadNode node = new DecodedHeadNode(decodedTxtRecord.data());
-        salt = node.salt();
+        password = new Password(publicDomain.toString(), node.salt());
         onHeadNode(node);
     }
 
@@ -104,22 +111,32 @@ public class DownloadSession {
         onHeadNode(node);
     }
 
-    private void onBodyChunkResponse(Message resp) {
+    private void onBodyChunkResponse(int chunkIndex, Message resp) {
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
         DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
-        System.out.println(decodedTxtRecord.data());
+        byte[] bytes = password.decrypt(decodedTxtRecord.data());
+        chunkResponses.put(chunkIndex, bytes);
+        if (allHeadNodesReceived && chunkRequests.size() == chunkResponses.size()) {
+            onDownloaded.accept(result());
+        }
     }
 
     private void onHeadNode(DecodedHeadNode node) {
+        if (node.hasNext()) {
+            throw new RuntimeException("not implemented");
+        } else {
+            allHeadNodesReceived = true;
+        }
         for (String chunkDigest : node.chunkDigests()) {
-            if (digestRequests.contains(chunkDigest)) {
+            if (chunkRequests.contains(chunkDigest)) {
                 continue;
             }
+            chunkRequests.add(chunkDigest);
             try {
                 Record record = Record.newRecord(new Name(chunkDigest, site.privateDomain()),
                         Type.TXT, DClass.IN);
                 DnsRequest req = new DnsRequest(Message.newQuery(record), site.privateResolvers());
-                handlers.put(req.getID(), this::onBodyChunkResponse);
+                handlers.put(req.getID(), resp -> onBodyChunkResponse(0, resp));
                 sendRequest.accept(req);
             } catch (TextParseException e) {
                 throw new RuntimeException(e);
@@ -130,8 +147,8 @@ public class DownloadSession {
 
     private DnsRequest createNameRequest(List<InetSocketAddress> candidateServers) {
         try {
-            Name name = Name.fromString(IDN.toASCII(uri.getAuthority() + "."));
-            Message message = Message.newQuery(Record.newRecord(name, Type.NS, DClass.IN));
+            publicDomain = Name.fromString(IDN.toASCII(uri.getAuthority() + "."));
+            Message message = Message.newQuery(Record.newRecord(publicDomain, Type.NS, DClass.IN));
             return new DnsRequest(message, candidateServers);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -149,6 +166,17 @@ public class DownloadSession {
     }
 
     public byte[] result() {
-        throw new RuntimeException();
+        int totalSize = 0;
+        for (int i = 0; i < chunkResponses.size(); i++) {
+            totalSize += chunkResponses.get(i).length;
+        }
+        byte[] result = new byte[totalSize];
+        int pos = 0;
+        for (int i = 0; i < chunkResponses.size(); i++) {
+            byte[] chunk = chunkResponses.get(i);
+            System.arraycopy(chunk, 0, result, pos, chunk.length);
+            pos += chunk.length;
+        }
+        return result;
     }
 }

@@ -19,13 +19,9 @@ public class EncodedBodyChunk implements Block {
 
     public byte[] data() {
         if (cache == null) {
-            cache = calculateData();
+            cache = password.encrypt(decodedData);
         }
         return cache;
-    }
-    
-    private byte[] calculateData() {
-        return password.encrypt(decodedData);
     }
 
     public byte[] digestBytes() {

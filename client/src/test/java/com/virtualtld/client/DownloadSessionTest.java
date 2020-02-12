@@ -1,14 +1,17 @@
 package com.virtualtld.client;
 
+import com.protocol.cdc.Block;
+import com.protocol.cdc.EncodedFile;
+import com.protocol.cdc.EncodedTxtRecord;
+import com.protocol.cdc.VirtualtldSite;
+
 import org.junit.Test;
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.NSRecord;
 import org.xbill.DNS.Name;
-import org.xbill.DNS.Record;
 import org.xbill.DNS.Section;
-import org.xbill.DNS.Type;
 
 import java.net.IDN;
 import java.net.Inet4Address;
@@ -16,6 +19,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -26,6 +30,13 @@ public class DownloadSessionTest {
 
     @Test
     public void happy_path() throws Exception {
+        EncodedFile encodedFile = new EncodedFile(new VirtualtldSite(
+                "最新版本.com", "最新版本.xyz"),
+                "/", "hello".getBytes());
+        HashMap<String, Block> blocks = new HashMap<>();
+        for (Block block : encodedFile.blocks()) {
+            blocks.put(block.digest(), block);
+        }
         List<DnsRequest> requests = new ArrayList<>();
         DownloadSession session = new DownloadSession(
                 new URI("virtualtld://最新版本.com/"), requests::add);
@@ -36,9 +47,7 @@ public class DownloadSessionTest {
                 equalTo(Name.fromString(IDN.toASCII("最新版本.com."))));
         // response 1
         Message resp1 = new Message(req1.getID());
-        resp1.addRecord(Record.newRecord(
-                Name.fromString(IDN.toASCII("最新版本.com.")), Type.NS, DClass.IN),
-                Section.QUESTION);
+        resp1.addRecord(req1.message.getQuestion(), Section.QUESTION);
         resp1.addRecord(new ARecord(Name.fromString("a.gtld-servers.net."), DClass.IN, 172800,
                 Inet4Address.getByName("192.5.6.30")), Section.ADDITIONAL);
         session.onResponse(resp1);
@@ -52,9 +61,7 @@ public class DownloadSessionTest {
         assertThat(req2.candidateServers, equalTo(servers));
         // repsonse 2
         Message resp2 = new Message(req2.getID());
-        resp2.addRecord(Record.newRecord(
-                Name.fromString(IDN.toASCII("最新版本.com.")), Type.NS, DClass.IN),
-                Section.QUESTION);
+        resp2.addRecord(req2.message.getQuestion(), Section.QUESTION);
         resp2.addRecord(new NSRecord(Name.fromString("最新版本.com."), DClass.IN, 172800,
                 Name.fromString("ver.1.1.virtualtld.com.")), Section.ANSWER);
         resp2.addRecord(new NSRecord(Name.fromString("最新版本.com."), DClass.IN, 172800,
@@ -67,5 +74,12 @@ public class DownloadSessionTest {
         DnsRequest req3 = requests.get(2);
         assertThat(req3.message.getQuestion().getName(),
                 equalTo(Name.fromString(IDN.toASCII("r8eMbUUdjj2cPfqeMwBJG8amEPQ=.最新版本.xyz."))));
+        // response 3
+        Message resp3 = new Message(req3.getID());
+        resp3.addRecord(req3.message.getQuestion(), Section.QUESTION);
+        Name reqName = req3.message.getQuestion().getName();
+        Block block = blocks.get(reqName.getLabelString(0));
+        resp3.addRecord(new EncodedTxtRecord(reqName, block.data()).txtRecord(), Section.ANSWER);
+        session.onResponse(resp3);
     }
 }

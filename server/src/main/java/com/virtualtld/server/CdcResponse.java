@@ -1,6 +1,7 @@
 package com.virtualtld.server;
 
 import com.protocol.cdc.Block;
+import com.protocol.cdc.EncodedTxtRecord;
 
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Flags;
@@ -61,16 +62,7 @@ public class CdcResponse {
             output.getHeader().setRcode(Rcode.NXDOMAIN);
             return output;
         }
-        TXTRecord record = (TXTRecord) Record.newRecord(
-                input.getQuestion().getName(), Type.TXT, DClass.IN, 172800, new byte[]{0});
-        List<byte[]> strings = record.getStringsAsByteArrays();
-        strings.clear();
-        if (block.length < 256) {
-            strings.add(block);
-        } else {
-            strings.add(copyOfRange(block, 0, 255));
-            strings.add(copyOfRange(block, 255, block.length));
-        }
+        TXTRecord record = new EncodedTxtRecord(input.getQuestion().getName(), block).txtRecord();
         output.addRecord(record, Section.ANSWER);
         return output;
     }

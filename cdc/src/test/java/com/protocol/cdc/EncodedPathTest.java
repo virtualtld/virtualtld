@@ -10,9 +10,8 @@ import java.util.ArrayList;
 public class EncodedPathTest {
     @Test
     public void test_encode() throws TextParseException {
-        EncodedPath path = new EncodedPath(Name.fromString("abc.com."), "", new EncodedHeadNode(
-                new ArrayList<>(), new byte[8], null));
-        Assert.assertEquals("r8eMbUUdjj2cPfqeMwBJG8amEPQ=",
+        EncodedPath path = new EncodedPath(Name.fromString("abc.com."), "/");
+        Assert.assertEquals("8bea061f3f71b7d4d3b39257114b713b93dd3b87",
                 path.digest());
     }
 }

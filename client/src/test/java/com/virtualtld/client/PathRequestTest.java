@@ -18,6 +18,6 @@ public class PathRequestTest {
         Name privateDomain = Name.fromString(IDN.toASCII("最新版本.xyz."));
         Message nsRequest = new PathRequest(uri, privateDomain).pathRequest();
         assertThat(nsRequest.getQuestion().getName(), equalTo(
-                new Name(IDN.toASCII("u5U4Ywx+E1CWvdiyz0xHNjsHu8o=.最新版本.xyz."))));
+                new Name(IDN.toASCII("bb9538630c7e135096bdd8b2cf4c47363b07bbca.最新版本.xyz."))));
     }
 }

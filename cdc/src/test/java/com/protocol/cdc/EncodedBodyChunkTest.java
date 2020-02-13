@@ -11,7 +11,7 @@ public class EncodedBodyChunkTest {
     @Test
     public void digest() {
         EncodedBodyChunk chunk = newChunk();
-        assertThat(chunk.digest(), equalTo("OEwotrQj9ssMmddQRUI9kdr0yDc="));
+        assertThat(chunk.digest(), equalTo("384c28b6b423f6cb0c99d75045423d91daf4c837"));
     }
 
     private static EncodedBodyChunk newChunk() {

@@ -39,6 +39,12 @@ public class DecodedSite {
             }
             parseRecord((NSRecord) record);
         }
+        for (Record record : resp.getSectionArray(Section.AUTHORITY)) {
+            if (!(record instanceof NSRecord)) {
+                throw new RuntimeException("unexpected record type");
+            }
+            parseRecord((NSRecord) record);
+        }
         if (!versionVerified) {
             throw new RuntimeException("missing version");
         }

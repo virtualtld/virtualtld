@@ -31,7 +31,7 @@ public class HandleCdcRequest implements Consumer<DnsRequest> {
 
     private void handle(DnsRequest req) throws Exception {
         Message input = new Message(req.packet.getData());
-        LOGGER.info("input\n" + input);
+        LOGGER.info("input from " + req.packet.getAddress() + "\n" + input);
         Message output = new CdcResponse(input, nsResp, blocks).dnsResponse();
         LOGGER.info("output\n" + output);
         byte[] outputBytes = output.toWire();

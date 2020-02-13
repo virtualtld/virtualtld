@@ -3,6 +3,8 @@ package com.virtualtld.server;
 import com.protocol.cdc.Block;
 import com.protocol.cdc.EncodedTxtRecord;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Flags;
 import org.xbill.DNS.Message;
@@ -20,6 +22,7 @@ import static java.util.Arrays.copyOfRange;
 
 public class CdcResponse {
 
+    private final static Logger LOGGER = LoggerFactory.getLogger(CdcResponse.class);
     private final Message input;
     private final Message nsResp;
     private final Map<String, Block> blocks;
@@ -57,12 +60,13 @@ public class CdcResponse {
         output.getHeader().setFlag(Flags.AA);
         output.addRecord(input.getQuestion(), Section.QUESTION);
         String digest = input.getQuestion().getName().getLabelString(0);
-        byte[] block = blocks.get(digest).data();
+        Block block = blocks.get(digest);
         if (block == null) {
+            LOGGER.warn("unknown block requested: " + digest);
             output.getHeader().setRcode(Rcode.NXDOMAIN);
             return output;
         }
-        TXTRecord record = new EncodedTxtRecord(input.getQuestion().getName(), block).txtRecord();
+        TXTRecord record = new EncodedTxtRecord(input.getQuestion().getName(), block.data()).txtRecord();
         output.addRecord(record, Section.ANSWER);
         return output;
     }

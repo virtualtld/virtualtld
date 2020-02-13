@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.protocol.cdc.Digest.base64;
+import static com.protocol.cdc.Digest.hex;
 import static com.protocol.cdc.EncodedHeadNode.FLAG_NEXT;
 import static com.protocol.cdc.EncodedHeadNode.FLAG_SALT;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -28,11 +28,11 @@ public class EncodedFileTest {
         Assert.assertThat(chunks.size(), is(2));
         EncodedBodyChunk chunk1 = chunks.get(0);
         Assert.assertThat(chunk1.decodedData().length, equalTo(431));
-        Assert.assertThat(base64(chunk1.digestBytes()), equalTo(
+        Assert.assertThat(Digest.hex(chunk1.digestBytes()), equalTo(
                 "2l2EO4S6yQhd5uiISq49DJcgP+U="));
         EncodedBodyChunk chunk2 = chunks.get(1);
         Assert.assertThat(chunk2.decodedData().length, equalTo(81));
-        Assert.assertThat(base64(chunk2.digestBytes()), equalTo(
+        Assert.assertThat(Digest.hex(chunk2.digestBytes()), equalTo(
                 "Aar6AtfY07ragpI3npgm1CdT0vo="));
     }
 
@@ -43,7 +43,7 @@ public class EncodedFileTest {
         Assert.assertThat(nodes.size(), is(1));
         DecodedHeadNode node = new DecodedHeadNode(nodes.get(0).data());
         Assert.assertThat(node.flag(), equalTo(FLAG_SALT));
-        Assert.assertThat(base64(node.salt()), equalTo(
+        Assert.assertThat(Digest.hex(node.salt()), equalTo(
                 "XD64AGZCAAI="));
         Assert.assertThat(node.chunkDigests(), equalTo(
                 Arrays.asList("2l2EO4S6yQhd5uiISq49DJcgP+U=", "Aar6AtfY07ragpI3npgm1CdT0vo=")));

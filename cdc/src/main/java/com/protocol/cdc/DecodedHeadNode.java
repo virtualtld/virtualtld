@@ -3,7 +3,7 @@ package com.protocol.cdc;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.protocol.cdc.Digest.base64;
+import static com.protocol.cdc.Digest.hex;
 import static com.protocol.cdc.EncodedBodyChunk.DIGEST_SIZE;
 import static com.protocol.cdc.EncodedHeadNode.FLAG_NEXT;
 import static com.protocol.cdc.EncodedHeadNode.FLAG_SALT;
@@ -43,7 +43,7 @@ public class DecodedHeadNode {
         int chunksCount = (encodedData.length - baseOffset) / DIGEST_SIZE;
         ArrayList<String> chunkDigests = new ArrayList<>();
         for (int i = 0; i < chunksCount; i++) {
-            String chunkDigest = base64(encodedData, baseOffset + i * DIGEST_SIZE, DIGEST_SIZE);
+            String chunkDigest = hex(encodedData, baseOffset + i * DIGEST_SIZE, DIGEST_SIZE);
             chunkDigests.add(chunkDigest);
         }
         return chunkDigests;
@@ -53,7 +53,7 @@ public class DecodedHeadNode {
         if (!hasNext()) {
             throw new RuntimeException("no next");
         }
-        return base64(copyOfRange(encodedData, 1, 1 + DIGEST_SIZE));
+        return Digest.hex(copyOfRange(encodedData, 1, 1 + DIGEST_SIZE));
     }
 
     public boolean hasSalt() {

@@ -2,7 +2,7 @@ package com.protocol.cdc;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.util.Formatter;
 
 class Digest {
 
@@ -11,7 +11,7 @@ class Digest {
         crypt.reset();
         crypt.update(chunk1);
         crypt.update(chunk2);
-        return base64(crypt.digest());
+        return hex(crypt.digest());
     }
 
     public static byte[] sha1Bytes(byte[] chunk) {
@@ -21,14 +21,20 @@ class Digest {
         return crypt.digest();
     }
 
-    public static String base64(byte[] data) {
-        return Base64.getEncoder().encodeToString(data);
+    public static String hex(byte[] data) {
+        Formatter formatter = new Formatter();
+        for (byte b : data) {
+            formatter.format("%02x", b);
+        }
+        return formatter.toString();
     }
 
-    public static String base64(byte[] data, int offset, int length) {
-        byte[] subset = new byte[length];
-        System.arraycopy(data, offset, subset, 0, length);
-        return Base64.getEncoder().encodeToString(subset);
+    public static String hex(byte[] data, int offset, int length) {
+        Formatter formatter = new Formatter();
+        for (int i = offset; i < offset + length; i++) {
+            formatter.format("%02x", data[i]);
+        }
+        return formatter.toString();
     }
 
     private static MessageDigest sha1() {

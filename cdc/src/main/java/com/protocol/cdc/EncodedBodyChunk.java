@@ -1,6 +1,6 @@
 package com.protocol.cdc;
 
-import static com.protocol.cdc.Digest.base64;
+import static com.protocol.cdc.Digest.hex;
 
 public class EncodedBodyChunk implements Block {
     public static final int DIGEST_SIZE = 20;
@@ -29,6 +29,6 @@ public class EncodedBodyChunk implements Block {
     }
 
     public String digest() {
-        return base64(digestBytes());
+        return Digest.hex(digestBytes());
     }
 }

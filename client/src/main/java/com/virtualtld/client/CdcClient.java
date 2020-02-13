@@ -3,6 +3,7 @@ package com.virtualtld.client;
 
 import org.xbill.DNS.Message;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,8 @@ public class CdcClient {
     private final NsCache nsCache = new NsCache(dnsClient::send, this::onResponse);
 
     private final List<DownloadSession> sessions = new ArrayList<>();
+
+    public List<InetSocketAddress> rootNameServers = DownloadSession.ROOT_NAME_SERVERS;
 
     public void start() {
         dnsClient.start();
@@ -29,7 +32,7 @@ public class CdcClient {
     }
 
     private synchronized void onResponse(Message resp) {
-        for (DownloadSession session : sessions) {
+        for (DownloadSession session : new ArrayList<>(sessions)) {
             session.onResponse(resp);
         }
     }
@@ -38,6 +41,6 @@ public class CdcClient {
         sessions.add(new DownloadSession(uri, nsCache::sendRequest, (session, result) -> {
             sessions.remove(session);
             callback.accept(result);
-        }));
+        }, rootNameServers));
     }
 }

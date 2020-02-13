@@ -13,16 +13,16 @@ public class EncodedDirectory {
 
     private final Path webRoot;
     private final VirtualtldSite site;
-    private final WebFiles.Options options;
+    private final ScanOptions options;
 
-    public EncodedDirectory(VirtualtldSite site, Path webRoot, WebFiles.Options options) {
+    public EncodedDirectory(VirtualtldSite site, Path webRoot, ScanOptions options) {
         this.webRoot = webRoot;
         this.site = site;
         this.options = options;
     }
 
     public Map<String, Path> files() {
-        return new WebFiles(webRoot, options).files();
+        return new ScanFiles(webRoot, options).files();
     }
 
     public Map<String, Block> blocks() {
@@ -35,7 +35,8 @@ public class EncodedDirectory {
 
     private Map<String, Block> _blocks() throws Exception {
         Map<String, Block> blocks = new HashMap<>();
-        for (Map.Entry<String, Path> entry : files().entrySet()) {
+        Map<String, Path> files = files();
+        for (Map.Entry<String, Path> entry : files.entrySet()) {
             byte[] content = Files.readAllBytes(entry.getValue());
             EncodedFile file = new EncodedFile(site, entry.getKey(), content);
             for (Block block : file.blocks()) {

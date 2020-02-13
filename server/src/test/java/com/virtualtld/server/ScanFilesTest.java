@@ -14,7 +14,18 @@ import java.util.HashMap;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class WebFilesTest {
+public class ScanFilesTest {
+
+    @Test
+    public void index_html() throws IOException {
+        FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+        Files.createDirectories(fs.getPath("/a/b/c"));
+        Files.write(fs.getPath("/a/index.html"), "hello".getBytes());
+        ScanFiles scanFiles = new ScanFiles(fs.getPath("/a"), new ScanOptions());
+        assertThat(scanFiles.files(), equalTo(filesMap(fs,
+                "/index.html", "/a/index.html",
+                "/", "/a/index.html")));
+    }
 
     @Test
     public void scan_all() throws IOException {
@@ -22,10 +33,10 @@ public class WebFilesTest {
         Files.createDirectories(fs.getPath("/a/b/c"));
         Files.write(fs.getPath("/a/b/c/Hello.txt"), "hello".getBytes());
         Files.write(fs.getPath("/a/World.txt"), "world".getBytes());
-        WebFiles webFiles = new WebFiles(fs.getPath("/a"), new WebFiles.Options());
-        assertThat(webFiles.files(), equalTo(filesMap(fs,
-                "b/c/Hello.txt", "/a/b/c/Hello.txt",
-                "World.txt", "/a/World.txt")));
+        ScanFiles scanFiles = new ScanFiles(fs.getPath("/a"), new ScanOptions());
+        assertThat(scanFiles.files(), equalTo(filesMap(fs,
+                "/b/c/Hello.txt", "/a/b/c/Hello.txt",
+                "/World.txt", "/a/World.txt")));
     }
 
     @Test
@@ -34,11 +45,11 @@ public class WebFilesTest {
         Files.createDirectories(fs.getPath("/a/b/c"));
         Files.write(fs.getPath("/a/b/c/Hello.txt"), "hello".getBytes());
         Files.write(fs.getPath("/a/World.txt"), "world".getBytes());
-        WebFiles webFiles = new WebFiles(fs.getPath("/a"), new WebFiles.Options() {{
+        ScanFiles scanFiles = new ScanFiles(fs.getPath("/a"), new ScanOptions() {{
             directoryBlacklist.add(fs.getPathMatcher("glob:**/b"));
         }});
-        assertThat(webFiles.files(), equalTo(filesMap(fs,
-                "World.txt", "/a/World.txt")));
+        assertThat(scanFiles.files(), equalTo(filesMap(fs,
+                "/World.txt", "/a/World.txt")));
     }
 
     @Test
@@ -47,11 +58,11 @@ public class WebFilesTest {
         Files.createDirectories(fs.getPath("/a/b/c"));
         Files.write(fs.getPath("/a/b/c/Hello.txt"), "hello".getBytes());
         Files.write(fs.getPath("/a/World.txt"), "world".getBytes());
-        WebFiles webFiles = new WebFiles(fs.getPath("/a"), new WebFiles.Options() {{
+        ScanFiles scanFiles = new ScanFiles(fs.getPath("/a"), new ScanOptions() {{
             fileWhitelist.add(fs.getPathMatcher("glob:**/World.txt"));
         }});
-        assertThat(webFiles.files(), equalTo(filesMap(fs,
-                "World.txt", "/a/World.txt")));
+        assertThat(scanFiles.files(), equalTo(filesMap(fs,
+                "/World.txt", "/a/World.txt")));
     }
 
     @Test
@@ -60,11 +71,11 @@ public class WebFilesTest {
         Files.createDirectories(fs.getPath("/a/b/c"));
         Files.write(fs.getPath("/a/b/c/Hello.txt"), "hello".getBytes());
         Files.write(fs.getPath("/a/World.txt"), "world".getBytes());
-        WebFiles webFiles = new WebFiles(fs.getPath("/a"), new WebFiles.Options() {{
+        ScanFiles scanFiles = new ScanFiles(fs.getPath("/a"), new ScanOptions() {{
             fileBlacklist.add(fs.getPathMatcher("glob:**/World.txt"));
         }});
-        assertThat(webFiles.files(), equalTo(filesMap(fs,
-                "b/c/Hello.txt", "/a/b/c/Hello.txt")));
+        assertThat(scanFiles.files(), equalTo(filesMap(fs,
+                "/b/c/Hello.txt", "/a/b/c/Hello.txt")));
     }
 
     private HashMap<String, Path> filesMap(FileSystem fs, String... args) {

@@ -9,6 +9,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.hamcrest:hamcrest:2.2'
     implementation project(path: ':cdc')
+    implementation project(path: ':client')
 }
 
 sourceCompatibility = "8"

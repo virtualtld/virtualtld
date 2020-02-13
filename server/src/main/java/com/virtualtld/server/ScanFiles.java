@@ -7,17 +7,15 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class WebFiles {
+public class ScanFiles {
 
     private final Path webRoot;
-    private Options options;
+    private ScanOptions options;
 
-    public WebFiles(Path webRoot, Options options) {
+    public ScanFiles(Path webRoot, ScanOptions options) {
         this.webRoot = webRoot;
         this.options = options;
     }
@@ -36,7 +34,11 @@ public class WebFiles {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     if (shouldIncludeFile(file)) {
-                        fileMap.put(webRoot.relativize(file).toString(), file);
+                        String path = "/" + webRoot.relativize(file).toString();
+                        if (path.equals("/index.html")) {
+                            fileMap.put("/", file);
+                        }
+                        fileMap.put(path, file);
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -84,9 +86,4 @@ public class WebFiles {
         return false;
     }
 
-    public static class Options {
-        public List<PathMatcher> fileBlacklist = new ArrayList<>();
-        public List<PathMatcher> fileWhitelist = new ArrayList<>();
-        public List<PathMatcher> directoryBlacklist = new ArrayList<>();
-    }
 }

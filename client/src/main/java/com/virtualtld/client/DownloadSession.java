@@ -4,6 +4,8 @@ import com.protocol.cdc.DecodedHeadNode;
 import com.protocol.cdc.DecodedTxtRecord;
 import com.protocol.cdc.Password;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Message;
@@ -31,7 +33,8 @@ import java.util.function.Consumer;
 
 public class DownloadSession {
 
-    private final static List<InetSocketAddress> ROOT_NAME_SERVERS = Arrays.asList(
+    private final static Logger LOGGER = LoggerFactory.getLogger(DownloadSession.class);
+    public final static List<InetSocketAddress> ROOT_NAME_SERVERS = Arrays.asList(
             new InetSocketAddress("198.41.0.4", 53),
             new InetSocketAddress("199.9.14.201", 53),
             new InetSocketAddress("192.33.4.12", 53),
@@ -60,17 +63,29 @@ public class DownloadSession {
     private Name publicDomain;
     private boolean allHeadNodesReceived;
 
-    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest, BiConsumer<DownloadSession, byte[]> onDownloaded) {
+    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest,
+                           BiConsumer<DownloadSession, byte[]> onDownloaded) {
+        this(uri, sendRequest, onDownloaded, ROOT_NAME_SERVERS);
+
+    }
+
+    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest,
+                           BiConsumer<DownloadSession, byte[]> onDownloaded,
+                           List<InetSocketAddress> rootNameServers) {
         this.uri = uri;
         this.sendRequest = sendRequest;
         this.onDownloaded = onDownloaded;
-        rootNameRequest = createNameRequest(ROOT_NAME_SERVERS);
+        rootNameRequest = createNameRequest(rootNameServers);
         handlers.put(rootNameRequest.getID(), this::onRootNameResponse);
         sendRequest.accept(rootNameRequest);
     }
 
     private void onRootNameResponse(Message resp) {
         if (tldNameRequest != null) {
+            return;
+        }
+        if (resp.getSectionArray(Section.ANSWER).length > 0) {
+            onTldNameResponse(resp);
             return;
         }
         Record[] records = resp.getSectionArray(Section.ADDITIONAL);
@@ -91,10 +106,12 @@ public class DownloadSession {
             return;
         }
         site = new DecodedSite(resp);
-        pathRequest = new DnsRequest(new PathRequest(uri, site.privateDomain()).pathRequest(),
+        PathRequest pathRequest = new PathRequest(uri, site.privateDomain());
+        LOGGER.info("path request " + pathRequest.digest() + " => " + uri);
+        this.pathRequest = new DnsRequest(pathRequest.pathRequest(),
                 site.privateResolvers());
-        handlers.put(pathRequest.getID(), this::onFirstHeadNodeResponse);
-        sendRequest.accept(pathRequest);
+        handlers.put(this.pathRequest.getID(), this::onFirstHeadNodeResponse);
+        sendRequest.accept(this.pathRequest);
     }
 
     private void onFirstHeadNodeResponse(Message resp) {

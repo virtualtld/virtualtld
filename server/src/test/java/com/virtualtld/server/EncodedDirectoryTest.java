@@ -39,6 +39,6 @@ public class EncodedDirectoryTest {
 
     private static EncodedDirectory newEncodedDirectory(Path webRoot) {
         VirtualtldSite site = new VirtualtldSite("最新版本.com", "最新版本.xyz");
-        return new EncodedDirectory(site, webRoot, new WebFiles.Options());
+        return new EncodedDirectory(site, webRoot, new ScanOptions());
     }
 }

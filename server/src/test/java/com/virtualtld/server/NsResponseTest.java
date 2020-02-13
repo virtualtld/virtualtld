@@ -18,7 +18,8 @@ public class NsResponseTest {
                 "PrivateDomain=最新版本.xyz",
                 "PrivateResolver=1.1.1.1:53"
         ))).nsResponse();
+        System.out.println(nsResp);
         assertThat(nsResp.toString(), containsString(
-                "xn--efv12a2dz86b.com.\t4090\tIN\tNS\tver.1.1.virtualtld.com."));
+                "xn--efv12a2dz86b.com.\t4090\tIN\tNS\tver.1.1.xn--efv12a2dz86b.com."));
     }
 }

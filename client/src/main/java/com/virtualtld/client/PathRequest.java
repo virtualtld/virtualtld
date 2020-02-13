@@ -23,20 +23,24 @@ public class PathRequest {
 
     public Message pathRequest() {
         try {
-            return _nsRequest();
+            String digest = digest();
+            return Message.newQuery(Record.newRecord(
+                    new Name(digest, privateDomain), Type.TXT, DClass.IN));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Message _nsRequest() throws Exception {
-        if (!uri.getScheme().equals("virtualtld")) {
-            throw new IllegalArgumentException("protocol must be virtualtld");
+    public String digest() {
+        try {
+            if (!uri.getScheme().equals("virtualtld")) {
+                throw new IllegalArgumentException("protocol must be virtualtld");
+            }
+            Name publicDomain = Name.fromString(IDN.toASCII(uri.getAuthority() + "."));
+            return new EncodedPath(publicDomain, uri.getPath()).digest();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        Name publicDomain = Name.fromString(IDN.toASCII(uri.getAuthority() + "."));
-        String digest = new EncodedPath(publicDomain, uri.getPath()).digest();
-        return Message.newQuery(Record.newRecord(
-                new Name(digest, privateDomain), Type.NS, DClass.IN));
     }
 }
 

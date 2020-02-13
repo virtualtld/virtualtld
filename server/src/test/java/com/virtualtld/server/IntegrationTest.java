@@ -21,6 +21,15 @@ public class IntegrationTest {
 
     @Test
     public void download_one_file() throws Exception {
+        runTest("hello");
+    }
+
+    @Test
+    public void download_larger_file() throws Exception {
+        runTest("You should learn about bytes, numeral systems, characters and their encoding in bits, called 'character encoding'. By default, an ascii character is encoded using 1 byte (8 bits). Hexadecimal is a numeral system where each number can span from 0-F. This number can be represented by an ascii character. You need two hex numbers to describe a byte (8 bits). If you want to display these two numbers using ascii characters, then you need two characters and thus two bytes.");
+    }
+
+    private void runTest(String content) throws InterruptedException {
         ExecutorService executorService = Executors.newWorkStealingPool();
         executorService.submit(() -> {
             try {
@@ -31,7 +40,7 @@ public class IntegrationTest {
                         "PublicDomain=最新版本.com\n" +
                         "PrivateDomain=最新版本.xyz\n" +
                         "PrivateResolver=127.0.0.1:8383").getBytes());
-                Files.write(webRoot.resolve("index.html"), "hello".getBytes());
+                Files.write(webRoot.resolve("index.html"), content.getBytes());
                 Serve.serve(webRoot);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -49,6 +58,6 @@ public class IntegrationTest {
                 throw new RuntimeException(e);
             }
         });
-        assertThat(exchanger.exchange(null), equalTo("hello"));
+        assertThat(exchanger.exchange(null), equalTo(content));
     }
 }

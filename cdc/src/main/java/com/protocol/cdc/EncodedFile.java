@@ -1,5 +1,7 @@
 package com.protocol.cdc;
 
+import org.xbill.DNS.Name;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,18 +11,16 @@ import static java.util.Arrays.copyOfRange;
 public class EncodedFile {
 
     public final Password password;
-    private final int chunkSizeLimit;
     private final EncodedFileBody body;
     private final EncodedFileHead head;
     private PathBlock pathBlock;
 
-    public EncodedFile(VirtualtldSite site, String path, byte[] content) {
+    public EncodedFile(Name publicDomain, String path, byte[] content, int chunkSizeLimit) {
         byte[] salt = copyOfRange(Digest.sha1Bytes(content), 0, SALT_SIZE);
-        this.password = new Password(site.publicDomain.toString(), salt);
-        chunkSizeLimit = new ChunkSizeLimit(site.privateDomain).limit();
+        this.password = new Password(publicDomain.toString(), salt);
         body = new EncodedFileBody(content, chunkSizeLimit, password);
         head = new EncodedFileHead(password, chunkSizeLimit, body.body());
-        pathBlock = new PathBlock(site, path, head);
+        pathBlock = new PathBlock(publicDomain, path, head);
     }
 
     public List<EncodedBodyChunk> body() {
@@ -40,19 +40,19 @@ public class EncodedFile {
 
     private static class PathBlock implements Block {
 
-        private final VirtualtldSite site;
+        private final Name publicDomain;
         private final String path;
         private final EncodedFileHead head;
 
-        private PathBlock(VirtualtldSite site, String path, EncodedFileHead head) {
-            this.site = site;
+        private PathBlock(Name publicDomain, String path, EncodedFileHead head) {
+            this.publicDomain = publicDomain;
             this.path = path;
             this.head = head;
         }
 
         @Override
         public String digest() {
-            return new EncodedPath(site.publicDomain, path).digest();
+            return new EncodedPath(publicDomain, path).digest();
         }
 
         @Override

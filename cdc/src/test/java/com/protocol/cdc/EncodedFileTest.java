@@ -74,6 +74,6 @@ public class EncodedFileTest {
 
     private static EncodedFile newEncodedFile(byte[] content) {
         VirtualtldSite site = new VirtualtldSite("最新版本.com", "最新版本.xyz");
-        return new EncodedFile(site, "/", content);
+        return new EncodedFile(site.publicDomain, "/", content, chunkSizeLimit);
     }
 }

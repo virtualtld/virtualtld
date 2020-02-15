@@ -32,9 +32,10 @@ public class DownloadSessionTest {
 
     @Test
     public void happy_path() throws Exception {
-        EncodedFile encodedFile = new EncodedFile(new VirtualtldSite(
-                "最新版本.com", "最新版本.xyz"),
-                "/", "hello".getBytes());
+        final VirtualtldSite site = new VirtualtldSite(
+                "最新版本.com", "最新版本.xyz");
+        EncodedFile encodedFile = new EncodedFile(
+                site.publicDomain, "/", "hello".getBytes(), chunkSizeLimit);
         HashMap<String, Block> blocks = new HashMap<>();
         for (Block block : encodedFile.blocks()) {
             blocks.put(block.digest(), block);

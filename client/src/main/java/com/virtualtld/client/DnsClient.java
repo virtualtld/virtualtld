@@ -55,17 +55,27 @@ public class DnsClient {
         }
     }
 
-    private void run() throws Exception {
-        DatagramPacket packet = new DatagramPacket(new byte[512], 512);
+    private void run() {
+        DatagramPacket packet = new DatagramPacket(new byte[1024], 1024);
         while (true) {
-            sock.receive(packet);
-            Message resp = new Message(packet.getData());
-            onResponse(resp, packet.getAddress(), packet.getPort());
+            try {
+                sock.receive(packet);
+            } catch (Exception e) {
+                LOGGER.error("failed to receive response", e);
+            }
+            onResponse(packet.getData(), packet.getAddress(), packet.getPort());
         }
     }
 
-    private synchronized void onResponse(Message resp, InetAddress remoteIp, int remotePort) {
-        LOGGER.info("received " + resp.getQuestion().getName() + " from " + remoteIp + ":" + remotePort + "\n" + resp);
+    private synchronized void onResponse(byte[] respBytes, InetAddress remoteIp, int remotePort) {
+        Message resp = null;
+        try {
+            resp = new Message(respBytes);
+        } catch (Exception e) {
+            LOGGER.error("failed to parse response from " + remoteIp + ":" + remotePort, e);
+            return;
+        }
+        LOGGER.info("received dns response " + resp.getQuestion().getName() + " from " + remoteIp + ":" + remotePort + "\n" + resp);
         if (resp.getRcode() != Rcode.NOERROR) {
             LOGGER.warn("response rcode is not NOERROR: "
                     + Rcode.TSIGstring(resp.getRcode()));
@@ -81,6 +91,7 @@ public class DnsClient {
 
     private void doSend(DnsRequest dnsRequest) {
         if (dnsRequest.dropped) {
+            LOGGER.info("retried too many times, dropped: " + dnsRequest.message);
             return;
         }
         byte[] reqBytes = dnsRequest.message.toWire();

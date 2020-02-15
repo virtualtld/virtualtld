@@ -26,7 +26,7 @@ class ChunkSizeLimit {
 
     private int _limit() throws Exception {
         int baseSize = baseSize();
-        int limit = 512 - baseSize;
+        int limit = 508 - baseSize;
         if (limit > 255) {
             // 255 byte per string
             // need one byte to encode the remaining string

@@ -57,8 +57,9 @@ public class DownloadSession {
     private DnsRequest tldNameRequest;
     private DnsRequest pathRequest;
     private DecodedSite site;
-    private Set<String> chunkRequests = new HashSet<>();
-    private Map<Integer, byte[]> chunkResponses = new HashMap<>();
+    private Set<String> bodyChunkReqs = new HashSet<>();
+    private Set<String> headNodeReqs = new HashSet<>();
+    private Map<Integer, byte[]> bodyChunkResps = new HashMap<>();
     private Password password;
     private Name publicDomain;
     private boolean allHeadNodesReceived;
@@ -119,51 +120,68 @@ public class DownloadSession {
         DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
         DecodedHeadNode node = new DecodedHeadNode(decodedTxtRecord.data());
         password = new Password(publicDomain.toString(), node.salt());
-        onHeadNode(node);
+        processHeadNode(0, node);
     }
 
-    private void onHeadNodeResponse(Message resp) {
+    private void onHeadNodeResponse(int bodyChunkIndexBase, Message resp) {
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
         DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
         DecodedHeadNode node = new DecodedHeadNode(decodedTxtRecord.data());
-        onHeadNode(node);
+        processHeadNode(bodyChunkIndexBase, node);
     }
 
     private void onBodyChunkResponse(int chunkIndex, Message resp) {
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
         DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
         byte[] bytes = password.decrypt(decodedTxtRecord.data());
-        chunkResponses.put(chunkIndex, bytes);
+        bodyChunkResps.put(chunkIndex, bytes);
         LOGGER.info(String.format("received body chunk, allHeadNodesReceived: %s, requestsCount:%d, responsesCount: %d",
-                allHeadNodesReceived, chunkRequests.size(), chunkResponses.size()));
-        if (allHeadNodesReceived && chunkRequests.size() == chunkResponses.size()) {
+                allHeadNodesReceived, bodyChunkReqs.size(), bodyChunkResps.size()));
+        if (allHeadNodesReceived && bodyChunkReqs.size() == bodyChunkResps.size()) {
             onDownloaded.accept(this, result());
         }
     }
 
-    private void onHeadNode(DecodedHeadNode node) {
+    private void processHeadNode(int bodyChunkIndexBase, DecodedHeadNode node) {
+        List<String> chunkDigests = node.chunkDigests();
         if (node.hasNext()) {
-            throw new RuntimeException("not implemented");
+            sendHeadNodeRequest(bodyChunkIndexBase + chunkDigests.size(), node.nextDigest());
         } else {
+            LOGGER.info(("all head node received"));
             allHeadNodesReceived = true;
         }
-        List<String> chunkDigests = node.chunkDigests();
         LOGGER.info("on head node: " + chunkDigests);
         for (int i = 0; i < chunkDigests.size(); i++) {
-            sendChunkRequest(i, chunkDigests.get(i));
+            sendBodyChunkRequest(i, chunkDigests.get(i));
         }
     }
 
-    private void sendChunkRequest(int i, String chunkDigest) {
-        if (chunkRequests.contains(chunkDigest)) {
+    private void sendHeadNodeRequest(int bodyChunkIndexBase, String nodeDigest) {
+        if (headNodeReqs.contains(nodeDigest)) {
             return;
         }
-        chunkRequests.add(chunkDigest);
+        headNodeReqs.add(nodeDigest);
+        try {
+            Record record = Record.newRecord(new Name(nodeDigest, site.privateDomain()),
+                    Type.TXT, DClass.IN);
+            DnsRequest req = new DnsRequest(Message.newQuery(record), site.privateResolvers());
+            handlers.put(req.getID(), resp -> onHeadNodeResponse(bodyChunkIndexBase, resp));
+            sendRequest.accept(req);
+        } catch (TextParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void sendBodyChunkRequest(int bodyChunkIndex, String chunkDigest) {
+        if (bodyChunkReqs.contains(chunkDigest)) {
+            return;
+        }
+        bodyChunkReqs.add(chunkDigest);
         try {
             Record record = Record.newRecord(new Name(chunkDigest, site.privateDomain()),
                     Type.TXT, DClass.IN);
             DnsRequest req = new DnsRequest(Message.newQuery(record), site.privateResolvers());
-            handlers.put(req.getID(), resp -> onBodyChunkResponse(i, resp));
+            handlers.put(req.getID(), resp -> onBodyChunkResponse(bodyChunkIndex, resp));
             sendRequest.accept(req);
         } catch (TextParseException e) {
             throw new RuntimeException(e);
@@ -193,13 +211,13 @@ public class DownloadSession {
 
     public byte[] result() {
         int totalSize = 0;
-        for (int i = 0; i < chunkResponses.size(); i++) {
-            totalSize += chunkResponses.get(i).length;
+        for (int i = 0; i < bodyChunkResps.size(); i++) {
+            totalSize += bodyChunkResps.get(i).length;
         }
         byte[] result = new byte[totalSize];
         int pos = 0;
-        for (int i = 0; i < chunkResponses.size(); i++) {
-            byte[] chunk = chunkResponses.get(i);
+        for (int i = 0; i < bodyChunkResps.size(); i++) {
+            byte[] chunk = bodyChunkResps.get(i);
             System.arraycopy(chunk, 0, result, pos, chunk.length);
             pos += chunk.length;
         }

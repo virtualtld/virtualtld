@@ -25,7 +25,6 @@ public class Serve {
         options.fileWhitelist = conf.fileWhitelist;
         options.directoryBlacklist = conf.directoryBlacklist;
         Map<String, Block> blocks = new EncodedDirectory(site, webRoot, options).blocks();
-        System.out.println("loaded blocks: " + blocks.keySet());
         HandleCdcRequest handleCdcRequest = new HandleCdcRequest(nsResp, blocks);
         HandleConcurrently handleConcurrently = new HandleConcurrently(handleCdcRequest, 8);
         System.out.println("list at " + conf.listenAt);

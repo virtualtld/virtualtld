@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.xbill.DNS.Message;
 
 import java.net.DatagramPacket;
+import java.util.Base64;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -38,6 +39,9 @@ public class HandleCdcRequest implements Consumer<DnsRequest> {
         }
         Message output = new CdcResponse(input, nsResp, blocks).dnsResponse();
         byte[] outputBytes = output.toWire();
+        if (outputBytes.length > 508) {
+            throw new RuntimeException(input.getQuestion().getName() + " response has size " + outputBytes.length + "\n" + Base64.getEncoder().encodeToString(outputBytes));
+        }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("send output of size " + outputBytes.length + "\n" + output);
         } else {

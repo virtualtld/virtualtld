@@ -11,4 +11,4 @@ then
 fi
 
 shift
-./gradlew $COMMAND --args "$@"
+exec ./gradlew $COMMAND --args="$1 $2"

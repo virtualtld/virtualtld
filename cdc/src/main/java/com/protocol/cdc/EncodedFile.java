@@ -8,7 +8,7 @@ import static java.util.Arrays.copyOfRange;
 
 public class EncodedFile {
 
-    private final Password password;
+    public final Password password;
     private final int chunkSizeLimit;
     private final EncodedFileBody body;
     private final EncodedFileHead head;

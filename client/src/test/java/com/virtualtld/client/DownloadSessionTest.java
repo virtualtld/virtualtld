@@ -85,7 +85,7 @@ public class DownloadSessionTest {
         assertThat(requests, hasSize(4));
         DnsRequest req4 = requests.get(3);
         assertThat(req4.message.getQuestion().getName(),
-                equalTo(Name.fromString(IDN.toASCII("4cef46ceac77c5e0ee36f705dc014347ac37383a.最新版本.xyz."))));
+                equalTo(Name.fromString(IDN.toASCII("9df6145647cc3a01965b5ee8b44a9823a9b0dcbb.最新版本.xyz."))));
         // response 4
         replyBlock(session, blocks, req4);
         assertThat(downloaded, equalTo(true));

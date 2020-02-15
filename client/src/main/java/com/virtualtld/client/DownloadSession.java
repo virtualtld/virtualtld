@@ -145,6 +145,9 @@ public class DownloadSession {
         } else {
             allHeadNodesReceived = true;
         }
+        if (node.hasNext()) {
+            throw new RuntimeException("not implementd");
+        }
         for (String chunkDigest : node.chunkDigests()) {
             if (chunkRequests.contains(chunkDigest)) {
                 continue;

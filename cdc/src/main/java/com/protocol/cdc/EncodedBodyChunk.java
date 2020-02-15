@@ -1,7 +1,5 @@
 package com.protocol.cdc;
 
-import static com.protocol.cdc.Digest.hex;
-
 public class EncodedBodyChunk implements Block {
     public static final int DIGEST_SIZE = 20;
     private final Password password;

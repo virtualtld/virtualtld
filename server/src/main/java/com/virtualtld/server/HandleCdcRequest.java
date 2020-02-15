@@ -33,8 +33,8 @@ public class HandleCdcRequest implements Consumer<DnsRequest> {
         Message input = new Message(req.packet.getData());
         LOGGER.info("input from " + req.packet.getAddress() + "\n" + input);
         Message output = new CdcResponse(input, nsResp, blocks).dnsResponse();
-        LOGGER.info("output\n" + output);
         byte[] outputBytes = output.toWire();
+        LOGGER.info("send output of size " + outputBytes.length + "\n" + output);
         req.socket.send(new DatagramPacket(outputBytes, outputBytes.length, req.packet.getSocketAddress()));
     }
 }

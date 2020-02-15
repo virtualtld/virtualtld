@@ -65,7 +65,7 @@ public class DnsClient {
     }
 
     private synchronized void onResponse(Message resp, InetAddress remoteIp, int remotePort) {
-        LOGGER.info("received response from " + remoteIp + ":" + remotePort + "\n" + resp);
+        LOGGER.info("received " + resp.getQuestion().getName() + " from " + remoteIp + ":" + remotePort + "\n" + resp);
         if (resp.getRcode() != Rcode.NOERROR) {
             LOGGER.warn("response rcode is not NOERROR: "
                     + Rcode.TSIGstring(resp.getRcode()));

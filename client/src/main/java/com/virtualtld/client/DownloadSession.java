@@ -134,6 +134,8 @@ public class DownloadSession {
         DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
         byte[] bytes = password.decrypt(decodedTxtRecord.data());
         chunkResponses.put(chunkIndex, bytes);
+        LOGGER.info(String.format("received body chunk, allHeadNodesReceived: %s, requestsCount:%d, responsesCount: %d",
+                allHeadNodesReceived, chunkRequests.size(), chunkResponses.size()));
         if (allHeadNodesReceived && chunkRequests.size() == chunkResponses.size()) {
             onDownloaded.accept(this, result());
         }
@@ -145,23 +147,26 @@ public class DownloadSession {
         } else {
             allHeadNodesReceived = true;
         }
-        if (node.hasNext()) {
-            throw new RuntimeException("not implementd");
+        List<String> chunkDigests = node.chunkDigests();
+        LOGGER.info("on head node: " + chunkDigests);
+        for (int i = 0; i < chunkDigests.size(); i++) {
+            sendChunkRequest(i, chunkDigests.get(i));
         }
-        for (String chunkDigest : node.chunkDigests()) {
-            if (chunkRequests.contains(chunkDigest)) {
-                continue;
-            }
-            chunkRequests.add(chunkDigest);
-            try {
-                Record record = Record.newRecord(new Name(chunkDigest, site.privateDomain()),
-                        Type.TXT, DClass.IN);
-                DnsRequest req = new DnsRequest(Message.newQuery(record), site.privateResolvers());
-                handlers.put(req.getID(), resp -> onBodyChunkResponse(0, resp));
-                sendRequest.accept(req);
-            } catch (TextParseException e) {
-                throw new RuntimeException(e);
-            }
+    }
+
+    private void sendChunkRequest(int i, String chunkDigest) {
+        if (chunkRequests.contains(chunkDigest)) {
+            return;
+        }
+        chunkRequests.add(chunkDigest);
+        try {
+            Record record = Record.newRecord(new Name(chunkDigest, site.privateDomain()),
+                    Type.TXT, DClass.IN);
+            DnsRequest req = new DnsRequest(Message.newQuery(record), site.privateResolvers());
+            handlers.put(req.getID(), resp -> onBodyChunkResponse(i, resp));
+            sendRequest.accept(req);
+        } catch (TextParseException e) {
+            throw new RuntimeException(e);
         }
     }
 

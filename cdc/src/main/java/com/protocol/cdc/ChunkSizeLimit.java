@@ -36,7 +36,7 @@ class ChunkSizeLimit {
     }
 
     private int baseSize() throws TextParseException {
-        Name name = new Name("n7B5G0YvpBA0elSBz5OLbBTbJnU=", privateDomain);
+        Name name = new Name("3b42ab1c93bed68bd787356acf47c77655b4e55f", privateDomain);
         Message message = new Message();
         message.addRecord(Record.newRecord(name, Type.TXT, DClass.IN, 1024), Section.QUESTION);
         message.addRecord(Record.newRecord(name, Type.TXT, DClass.IN, 1024, new byte[]{0}), Section.ANSWER);

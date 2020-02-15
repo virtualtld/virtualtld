@@ -21,7 +21,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,35 +28,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 
 public class DownloadSession {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(DownloadSession.class);
-    public final static List<InetSocketAddress> ROOT_NAME_SERVERS = Arrays.asList(
-            new InetSocketAddress("198.41.0.4", 53),
-            new InetSocketAddress("199.9.14.201", 53),
-            new InetSocketAddress("192.33.4.12", 53),
-            new InetSocketAddress("199.7.91.13", 53),
-            new InetSocketAddress("192.203.230.10", 53),
-            new InetSocketAddress("192.5.5.241", 53),
-            new InetSocketAddress("192.112.36.4", 53),
-            new InetSocketAddress("198.97.190.53", 53),
-            new InetSocketAddress("192.36.148.17", 53),
-            new InetSocketAddress("192.58.128.30", 53),
-            new InetSocketAddress("193.0.14.129", 53),
-            new InetSocketAddress("199.7.83.42", 53),
-            new InetSocketAddress("202.12.27.33", 53)
-    );
     private final Consumer<DnsRequest> sendRequest;
     private final BiConsumer<DownloadSession, byte[]> onDownloaded;
-    private final Map<Integer, Consumer<Message>> handlers = new HashMap<>();
+    private final Map<Integer, Function<Message, String>> handlers = new HashMap<>();
     private final URI uri;
     private DnsRequest rootNameRequest;
     private DnsRequest tldNameRequest;
     private DnsRequest pathRequest;
     private DecodedSite site;
     private Set<String> bodyChunkReqs = new HashSet<>();
+    private Set<String> missingBodyChunkDigests = new HashSet<>();
     private Set<String> headNodeReqs = new HashSet<>();
     private Map<Integer, byte[]> bodyChunkResps = new HashMap<>();
     private Password password;
@@ -66,28 +52,24 @@ public class DownloadSession {
 
     public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest,
                            BiConsumer<DownloadSession, byte[]> onDownloaded) {
-        this(uri, sendRequest, onDownloaded, ROOT_NAME_SERVERS);
-
-    }
-
-    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest,
-                           BiConsumer<DownloadSession, byte[]> onDownloaded,
-                           List<InetSocketAddress> rootNameServers) {
         this.uri = uri;
         this.sendRequest = sendRequest;
         this.onDownloaded = onDownloaded;
+
+    }
+
+    public void start(List<InetSocketAddress> rootNameServers) {
         rootNameRequest = createNameRequest(rootNameServers);
-        handlers.put(rootNameRequest.getID(), this::onRootNameResponse);
+        addHandler(rootNameRequest, this::onRootNameResponse);
         sendRequest.accept(rootNameRequest);
     }
 
-    private void onRootNameResponse(Message resp) {
+    private synchronized String onRootNameResponse(Message resp) {
         if (tldNameRequest != null) {
-            return;
+            return "already sent tldNameRequest";
         }
         if (resp.getSectionArray(Section.ANSWER).length > 0) {
-            onTldNameResponse(resp);
-            return;
+            return onTldNameResponse(resp);
         }
         Record[] records = resp.getSectionArray(Section.ADDITIONAL);
         ArrayList<InetSocketAddress> servers = new ArrayList<>();
@@ -98,48 +80,58 @@ public class DownloadSession {
             }
         }
         tldNameRequest = createNameRequest(servers);
-        handlers.put(tldNameRequest.getID(), this::onTldNameResponse);
+        addHandler(tldNameRequest, this::onTldNameResponse);
         sendRequest.accept(tldNameRequest);
+        return "success";
     }
 
-    private void onTldNameResponse(Message resp) {
+    private synchronized String onTldNameResponse(Message resp) {
         if (pathRequest != null) {
-            return;
+            return "already sent pathRequest";
         }
         site = new DecodedSite(resp);
         PathRequest pathRequest = new PathRequest(uri, site.privateDomain());
         LOGGER.info("path request " + pathRequest.digest() + " => " + uri);
         this.pathRequest = new DnsRequest(pathRequest.pathRequest(),
                 site.privateResolvers());
-        handlers.put(this.pathRequest.getID(), this::onFirstHeadNodeResponse);
+        addHandler(this.pathRequest, this::onFirstHeadNodeResponse);
         sendRequest.accept(this.pathRequest);
+        return "success";
     }
 
-    private void onFirstHeadNodeResponse(Message resp) {
+    private String onFirstHeadNodeResponse(Message resp) {
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
         DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
         DecodedHeadNode node = new DecodedHeadNode(decodedTxtRecord.data());
         password = new Password(publicDomain.toString(), node.salt());
         processHeadNode(0, node);
+        return "success";
     }
 
-    private void onHeadNodeResponse(int bodyChunkIndexBase, Message resp) {
+    private String onHeadNodeResponse(int bodyChunkIndexBase, Message resp) {
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
         DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
         DecodedHeadNode node = new DecodedHeadNode(decodedTxtRecord.data());
         processHeadNode(bodyChunkIndexBase, node);
+        return "success";
     }
 
-    private void onBodyChunkResponse(int chunkIndex, Message resp) {
+    private synchronized String onBodyChunkResponse(int chunkIndex, Message resp) {
+        String receivedDigest = resp.getQuestion().getName().getLabelString(0);
+        missingBodyChunkDigests.remove(receivedDigest);
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
         DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
         byte[] bytes = password.decrypt(decodedTxtRecord.data());
         bodyChunkResps.put(chunkIndex, bytes);
-        LOGGER.info(String.format("received body chunk, allHeadNodesReceived: %s, requestsCount:%d, responsesCount: %d",
-                allHeadNodesReceived, bodyChunkReqs.size(), bodyChunkResps.size()));
-        if (allHeadNodesReceived && bodyChunkReqs.size() == bodyChunkResps.size()) {
+        if (missingBodyChunkDigests.size() > 0 && missingBodyChunkDigests.size() < 3) {
+            LOGGER.info("still missing " + missingBodyChunkDigests);
+        }
+        LOGGER.info(String.format("received body chunk@%d, allHeadNodesReceived: %s, requestsCount:%d, responsesCount: %d",
+                chunkIndex, allHeadNodesReceived, bodyChunkReqs.size(), bodyChunkResps.size()));
+        if (allHeadNodesReceived && missingBodyChunkDigests.isEmpty()) {
             onDownloaded.accept(this, result());
         }
+        return "success";
     }
 
     private void processHeadNode(int bodyChunkIndexBase, DecodedHeadNode node) {
@@ -152,11 +144,11 @@ public class DownloadSession {
         }
         LOGGER.info("on head node: " + chunkDigests);
         for (int i = 0; i < chunkDigests.size(); i++) {
-            sendBodyChunkRequest(i, chunkDigests.get(i));
+            sendBodyChunkRequest(bodyChunkIndexBase + i, chunkDigests.get(i));
         }
     }
 
-    private void sendHeadNodeRequest(int bodyChunkIndexBase, String nodeDigest) {
+    private synchronized void sendHeadNodeRequest(int bodyChunkIndexBase, String nodeDigest) {
         if (headNodeReqs.contains(nodeDigest)) {
             return;
         }
@@ -165,27 +157,36 @@ public class DownloadSession {
             Record record = Record.newRecord(new Name(nodeDigest, site.privateDomain()),
                     Type.TXT, DClass.IN);
             DnsRequest req = new DnsRequest(Message.newQuery(record), site.privateResolvers());
-            handlers.put(req.getID(), resp -> onHeadNodeResponse(bodyChunkIndexBase, resp));
+            addHandler(req, resp -> onHeadNodeResponse(bodyChunkIndexBase, resp));
             sendRequest.accept(req);
         } catch (TextParseException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void sendBodyChunkRequest(int bodyChunkIndex, String chunkDigest) {
+    private synchronized void sendBodyChunkRequest(int bodyChunkIndex, String chunkDigest) {
         if (bodyChunkReqs.contains(chunkDigest)) {
             return;
         }
-        bodyChunkReqs.add(chunkDigest);
         try {
             Record record = Record.newRecord(new Name(chunkDigest, site.privateDomain()),
                     Type.TXT, DClass.IN);
             DnsRequest req = new DnsRequest(Message.newQuery(record), site.privateResolvers());
-            handlers.put(req.getID(), resp -> onBodyChunkResponse(bodyChunkIndex, resp));
+            LOGGER.info("add handler for " + req.message.getQuestion().getName() + "@" + bodyChunkIndex + " with id " + req.getID());
+            addHandler(req, resp -> onBodyChunkResponse(bodyChunkIndex, resp));
+            bodyChunkReqs.add(chunkDigest);
+            missingBodyChunkDigests.add(chunkDigest);
             sendRequest.accept(req);
-        } catch (TextParseException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            LOGGER.error("failed to send request " + chunkDigest, e);
         }
+    }
+
+    private Function<Message, String> addHandler(DnsRequest req, Function<Message, String> handler) {
+        while (handlers.containsKey(req.getID())) {
+            req.message.getHeader().setID(Math.abs((short)(req.getID() * 31)));
+        }
+        return handlers.put(req.getID(), handler);
     }
 
 
@@ -199,20 +200,25 @@ public class DownloadSession {
         }
     }
 
-    public synchronized void onResponse(Message resp) {
+    public synchronized String onResponse(Message resp) {
         int reqId = resp.getHeader().getID();
-        Consumer<Message> handler = handlers.get(reqId);
+        Function<Message, String> handler = handlers.get(reqId);
         if (handler == null) {
-            return;
+            return null;
         }
-        handler.accept(resp);
+        String result = handler.apply(resp);
         handlers.remove(reqId);
+        return result;
     }
 
     public byte[] result() {
         int totalSize = 0;
         for (int i = 0; i < bodyChunkResps.size(); i++) {
-            totalSize += bodyChunkResps.get(i).length;
+            byte[] bytes = bodyChunkResps.get(i);
+            if (bytes == null) {
+                LOGGER.error("missing chunk " + i);
+            }
+            totalSize += bytes.length;
         }
         byte[] result = new byte[totalSize];
         int pos = 0;

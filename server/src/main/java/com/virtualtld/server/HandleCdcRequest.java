@@ -31,10 +31,18 @@ public class HandleCdcRequest implements Consumer<DnsRequest> {
 
     private void handle(DnsRequest req) throws Exception {
         Message input = new Message(req.packet.getData());
-        LOGGER.info("input from " + req.packet.getAddress() + "\n" + input);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("input from " + req.packet.getAddress() + "\n" + input);
+        } else {
+            LOGGER.info("input from " + req.packet.getAddress() + " " + input.getQuestion().getName());
+        }
         Message output = new CdcResponse(input, nsResp, blocks).dnsResponse();
         byte[] outputBytes = output.toWire();
-        LOGGER.info("send output of size " + outputBytes.length + "\n" + output);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("send output of size " + outputBytes.length + "\n" + output);
+        } else {
+            LOGGER.info("send output of size " + outputBytes.length + " " + input.getQuestion().getName());
+        }
         req.socket.send(new DatagramPacket(outputBytes, outputBytes.length, req.packet.getSocketAddress()));
     }
 }

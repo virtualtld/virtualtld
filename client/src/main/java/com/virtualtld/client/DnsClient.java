@@ -17,18 +17,18 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class DnsClient {
 
     private final static ExecutorService executorService = Executors.newWorkStealingPool();
     private final static Logger LOGGER = LoggerFactory.getLogger(DnsClient.class);
-    private final Consumer<Message> respHandler;
+    private final Function<Message, String> respHandler;
     private final DnsResender resender = new DnsResender(
             this::doSend, new int[]{100, 200, 400, 800, 1600});
     private DatagramSocket sock;
 
-    public DnsClient(Consumer<Message> respHandler) {
+    public DnsClient(Function<Message, String> respHandler) {
         this.respHandler = respHandler;
         try {
             sock = new DatagramSocket();
@@ -55,14 +55,10 @@ public class DnsClient {
         }
     }
 
-    private void run() {
+    private void run() throws IOException {
         DatagramPacket packet = new DatagramPacket(new byte[1024], 1024);
         while (true) {
-            try {
-                sock.receive(packet);
-            } catch (Exception e) {
-                LOGGER.error("failed to receive response", e);
-            }
+            sock.receive(packet);
             onResponse(packet.getData(), packet.getAddress(), packet.getPort());
         }
     }
@@ -75,17 +71,28 @@ public class DnsClient {
             LOGGER.error("failed to parse response from " + remoteIp + ":" + remotePort, e);
             return;
         }
-        LOGGER.info("received dns response " + resp.getQuestion().getName() + " from " + remoteIp + ":" + remotePort + "\n" + resp);
+        String log = "received dns response " + resp.getQuestion().getName() + " from " + remoteIp + ":" + remotePort + " with id " + resp.getHeader().getID();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(log + "\n" + resp);
+        } else {
+            LOGGER.info(log);
+        }
+        String result = handleResp(resp);
+        LOGGER.info("handled dns response " + resp.getQuestion().getName() + " with result " + result);
+    }
+
+    private String handleResp(Message resp) {
         if (resp.getRcode() != Rcode.NOERROR) {
-            LOGGER.warn("response rcode is not NOERROR: "
-                    + Rcode.TSIGstring(resp.getRcode()));
-            return;
+            LOGGER.warn(resp.getQuestion().getName() + " response rcode is not NOERROR: " + Rcode.TSIGstring(resp.getRcode()));
+            return "rcode error";
         }
         try {
-            respHandler.accept(resp);
+            String result = respHandler.apply(resp);
             resender.remove(resp.getHeader().getID());
+            return result;
         } catch (Exception e) {
             LOGGER.warn("failed to handle response: \n" + resp, e);
+            return "exception";
         }
     }
 
@@ -105,7 +112,12 @@ public class DnsClient {
     }
 
     public void send(DnsRequest dnsRequest) {
-        LOGGER.info("sent request\n" + dnsRequest.message);
+        String log = "sent request + " + dnsRequest.message.getQuestion().getName() + " with id " + dnsRequest.getID();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(log + "\n" + dnsRequest.message);
+        } else {
+            LOGGER.info(log);
+        }
         resender.add(dnsRequest);
         doSend(dnsRequest);
     }

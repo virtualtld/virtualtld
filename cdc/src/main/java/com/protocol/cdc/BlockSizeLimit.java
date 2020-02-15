@@ -8,11 +8,11 @@ import org.xbill.DNS.Section;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public class ChunkSizeLimit {
+public class BlockSizeLimit {
 
     private final Name privateDomain;
 
-    public ChunkSizeLimit(Name privateDomain) {
+    public BlockSizeLimit(Name privateDomain) {
         this.privateDomain = privateDomain;
     }
 

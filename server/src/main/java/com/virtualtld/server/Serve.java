@@ -27,7 +27,7 @@ public class Serve {
         Map<String, Block> blocks = new EncodedDirectory(site, webRoot, options).blocks();
         HandleCdcRequest handleCdcRequest = new HandleCdcRequest(nsResp, blocks);
         HandleConcurrently handleConcurrently = new HandleConcurrently(handleCdcRequest, 8);
-        System.out.println("list at " + conf.listenAt);
+        System.out.println("listen at " + conf.listenAt);
         new DnsServer(conf.listenAt, handleConcurrently).start();
     }
 }

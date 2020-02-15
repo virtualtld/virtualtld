@@ -2,7 +2,6 @@ package com.protocol.cdc;
 
 import java.util.List;
 
-import static com.protocol.cdc.Digest.hex;
 import static com.protocol.cdc.EncodedBodyChunk.DIGEST_SIZE;
 import static com.protocol.cdc.Password.SALT_SIZE;
 

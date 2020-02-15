@@ -1,7 +1,7 @@
 package com.virtualtld.server;
 
 import com.protocol.cdc.Block;
-import com.protocol.cdc.ChunkSizeLimit;
+import com.protocol.cdc.BlockSizeLimit;
 import com.protocol.cdc.EncodedFile;
 import com.protocol.cdc.VirtualtldSite;
 
@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,8 +26,8 @@ public class EncodedDirectory {
         this.webRoot = webRoot;
         this.site = site;
         this.options = options;
-        chunkSizeLimit = new ChunkSizeLimit(site.privateDomain).limit();
-        LOGGER.info("chunk size limit: " + chunkSizeLimit);
+        chunkSizeLimit = new BlockSizeLimit(site.privateDomain).limit();
+        LOGGER.info("block size limit: " + chunkSizeLimit);
     }
 
     public Map<String, Path> files() {
@@ -53,8 +52,8 @@ public class EncodedDirectory {
             for (Block block : file.blocks()) {
                 String digest = block.digest();
                 fileBlockDigests.add(digest);
-                if ("6ae060a93f5f57a5e124341152dbcc4d65fdf0dc".equals(digest)) {
-                    System.out.println(Base64.getEncoder().encodeToString(block.data()));
+                if (block.data().length > chunkSizeLimit) {
+                    throw new RuntimeException("unexpected block size " + block.data().length + ": " + block);
                 }
                 blocks.put(digest, block);
             }

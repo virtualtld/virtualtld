@@ -11,16 +11,15 @@ import org.xbill.DNS.TXTRecord;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-import java.io.IOException;
 import java.net.IDN;
 import java.util.Base64;
 
-public class ChunkSizeLimitTest {
+public class BlockSizeLimitTest {
 
     @Test
     public void test() throws TextParseException {
         Name privateDomain = Name.fromString(IDN.toASCII("最新版本.xyz."));
-        Assert.assertEquals(431, new ChunkSizeLimit(privateDomain).limit());
+        Assert.assertEquals(431, new BlockSizeLimit(privateDomain).limit());
     }
 
     @Test
@@ -33,6 +32,6 @@ public class ChunkSizeLimitTest {
         message.addRecord(Record.newRecord(name, Type.TXT, DClass.IN, 1024), Section.QUESTION);
         message.addRecord(txtRecord, Section.ANSWER);
         System.out.println(message.toWire().length);
-        System.out.println(new ChunkSizeLimit(new Name("xn--efv12a2dz86b.xyz.")).limit());
+        System.out.println(new BlockSizeLimit(new Name("xn--efv12a2dz86b.xyz.")).limit());
     }
 }

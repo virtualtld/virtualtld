@@ -27,18 +27,15 @@ public class EncodedFileHead {
     }
 
     private List<EncodedHeadNode> calculateHead() {
-        int chunksCountLimit = (chunkSizeLimit - 1 - SALT_SIZE) / DIGEST_SIZE;
-        int firstNodeChunksCountLimit = chunksCountLimit;
+        int chunksCountLimit = (chunkSizeLimit - 1 - SALT_SIZE - DIGEST_SIZE) / DIGEST_SIZE;
         List<EncodedBodyChunk> chunks = body;
         ArrayList<EncodedHeadNode> nodes = new ArrayList<>();
-        if (chunks.size() <= firstNodeChunksCountLimit) {
+        if (chunks.size() <= chunksCountLimit) {
             nodes.add(new EncodedHeadNode(chunks, password.salt));
             return nodes;
         }
-        // need room to save pointer to next node
-        firstNodeChunksCountLimit -= 1;
-        nodes.add(new EncodedHeadNode(chunks.subList(0, firstNodeChunksCountLimit), password.salt));
-        chunks = chunks.subList(firstNodeChunksCountLimit, chunks.size());
+        nodes.add(new EncodedHeadNode(chunks.subList(0, chunksCountLimit), password.salt));
+        chunks = chunks.subList(chunksCountLimit, chunks.size());
         while (!chunks.isEmpty()) {
             if (chunksCountLimit > chunks.size()) {
                 chunksCountLimit = chunks.size();

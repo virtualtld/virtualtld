@@ -26,13 +26,13 @@ public class EncodedFileTest {
         List<EncodedBodyChunk> chunks = encodedFile.body();
         Assert.assertThat(chunks.size(), is(2));
         EncodedBodyChunk chunk1 = chunks.get(0);
-        Assert.assertThat(chunk1.decodedData().length, equalTo(431));
+        Assert.assertThat(chunk1.decodedData().length, equalTo(415));
         Assert.assertThat(Digest.hex(chunk1.digestBytes()), equalTo(
-                "983589535e05c495ffeae4b0b31ddcfafe92a763"));
+                "883d1803e4cbfcfc41c24741e5d4dbf42cefec07"));
         EncodedBodyChunk chunk2 = chunks.get(1);
-        Assert.assertThat(chunk2.decodedData().length, equalTo(81));
+        Assert.assertThat(chunk2.decodedData().length, equalTo(97));
         Assert.assertThat(Digest.hex(chunk2.digestBytes()), equalTo(
-                "f8ebbbe3ad6a8cfd13607fd3a7fad7a3a7a50158"));
+                "fa205d2a65684c6245a2272facf45fb12ace4014"));
     }
 
     @Test
@@ -45,7 +45,7 @@ public class EncodedFileTest {
         Assert.assertThat(Digest.hex(node.salt()), equalTo(
                 "5c3eb800"));
         Assert.assertThat(node.chunkDigests(), equalTo(
-                Arrays.asList("983589535e05c495ffeae4b0b31ddcfafe92a763", "f8ebbbe3ad6a8cfd13607fd3a7fad7a3a7a50158")));
+                Arrays.asList("883d1803e4cbfcfc41c24741e5d4dbf42cefec07", "fa205d2a65684c6245a2272facf45fb12ace4014")));
     }
 
     @Test
@@ -74,6 +74,6 @@ public class EncodedFileTest {
 
     private static EncodedFile newEncodedFile(byte[] content) {
         VirtualtldSite site = new VirtualtldSite("最新版本.com", "最新版本.xyz");
-        return new EncodedFile(site.publicDomain, "/", content, 512);
+        return new EncodedFile(site.publicDomain, "/", content, 415);
     }
 }

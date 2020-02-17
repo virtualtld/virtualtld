@@ -20,15 +20,18 @@ public class NsCacheTest {
     public void ns_response_can_be_cached() throws Exception {
         ArrayList<DnsRequest> requests = new ArrayList<>();
         ArrayList<Message> responses = new ArrayList<>();
-        NsCache nsCache = new NsCache(requests::add, responses::add);
+        NsCache nsCache = new NsCache(requests::add, resp -> {
+            responses.add(resp);
+            return "";
+        });
         Message resp = new Message();
-        resp.addRecord(Record.newRecord(Name.fromString("abc.com."),Type.NS, DClass.IN),
+        resp.addRecord(Record.newRecord(Name.fromString("abc.com."), Type.NS, DClass.IN),
                 Section.QUESTION);
-        resp.addRecord(new NSRecord(Name.fromString("abc.com."), DClass.IN,172800,
+        resp.addRecord(new NSRecord(Name.fromString("abc.com."), DClass.IN, 172800,
                 Name.fromString("ver.1.1.virtualtld.com.")), Section.ANSWER);
         nsCache.onResponse(resp);
         nsCache.sendRequest(new DnsRequest(Message.newQuery(
-                Record.newRecord(Name.fromString("abc.com."),Type.NS, DClass.IN)),
+                Record.newRecord(Name.fromString("abc.com."), Type.NS, DClass.IN)),
                 new ArrayList<>()));
         assertThat(requests.size(), equalTo(0));
         assertThat(responses.size(), equalTo(2));

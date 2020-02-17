@@ -31,6 +31,7 @@ public class DnsClientTest {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+            return "";
         });
         dnsClient.start();
     }

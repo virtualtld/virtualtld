@@ -35,7 +35,7 @@ public class DownloadSessionTest {
         final VirtualtldSite site = new VirtualtldSite(
                 "最新版本.com", "最新版本.xyz");
         EncodedFile encodedFile = new EncodedFile(
-                site.publicDomain, "/", "hello".getBytes(), chunkSizeLimit);
+                site.publicDomain, "/", "hello".getBytes(), 415);
         HashMap<String, Block> blocks = new HashMap<>();
         for (Block block : encodedFile.blocks()) {
             blocks.put(block.digest(), block);
@@ -46,6 +46,7 @@ public class DownloadSessionTest {
             downloaded = true;
             assertThat(new String(result), equalTo("hello"));
         });
+        session.start(CdcClient.ROOT_NAME_SERVERS);
         // request 1
         assertThat(requests, hasSize(1));
         DnsRequest req1 = requests.get(0);

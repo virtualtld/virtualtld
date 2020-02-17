@@ -46,6 +46,11 @@ public class EncodedHeadNode implements Block {
         return cache;
     }
 
+    @Override
+    public int ttl() {
+        return 2147483647;
+    }
+
     private byte[] calculateData() {
         int size = 1 + chunks.size() * DIGEST_SIZE;
         if (next != null) {

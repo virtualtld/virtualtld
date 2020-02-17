@@ -13,23 +13,24 @@ import static java.util.Arrays.copyOfRange;
 public class EncodedTxtRecord {
 
     private final Name name;
-    private final byte[] block;
+    private final Block block;
 
-    public EncodedTxtRecord(Name name, byte[] block) {
+    public EncodedTxtRecord(Name name, Block block) {
         this.name = name;
         this.block = block;
     }
 
     public TXTRecord txtRecord() {
         TXTRecord record = (TXTRecord) Record.newRecord(
-                name, Type.TXT, DClass.IN, 172800, new byte[]{0});
+                name, Type.TXT, DClass.IN, block.ttl(), new byte[]{0});
         List<byte[]> strings = record.getStringsAsByteArrays();
         strings.clear();
-        if (block.length < 256) {
-            strings.add(block);
+        byte[] blockData = block.data();
+        if (blockData.length < 256) {
+            strings.add(blockData);
         } else {
-            strings.add(copyOfRange(block, 0, 255));
-            strings.add(copyOfRange(block, 255, block.length));
+            strings.add(copyOfRange(blockData, 0, 255));
+            strings.add(copyOfRange(blockData, 255, blockData.length));
         }
         return record;
     }

@@ -66,6 +66,11 @@ public class CdcResponseTest {
             public byte[] data() {
                 return data;
             }
+
+            @Override
+            public int ttl() {
+                return 0;
+            }
         };
     }
 }

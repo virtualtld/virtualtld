@@ -22,6 +22,11 @@ public class EncodedBodyChunk implements Block {
         return cache;
     }
 
+    @Override
+    public int ttl() {
+        return 2147483647;
+    }
+
     public byte[] digestBytes() {
         return Digest.sha1Bytes(data());
     }

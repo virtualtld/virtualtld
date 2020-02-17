@@ -59,5 +59,10 @@ public class EncodedFile {
         public byte[] data() {
             return head.head().get(0).data();
         }
+
+        @Override
+        public int ttl() {
+            return 1;
+        }
     }
 }

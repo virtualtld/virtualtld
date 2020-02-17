@@ -99,7 +99,7 @@ public class DownloadSessionTest {
         resp3.addRecord(req3.message.getQuestion(), Section.QUESTION);
         Name reqName = req3.message.getQuestion().getName();
         Block block = blocks.get(reqName.getLabelString(0));
-        resp3.addRecord(new EncodedTxtRecord(reqName, block.data()).txtRecord(), Section.ANSWER);
+        resp3.addRecord(new EncodedTxtRecord(reqName, block).txtRecord(), Section.ANSWER);
         session.onResponse(resp3);
     }
 }

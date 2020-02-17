@@ -66,7 +66,7 @@ public class CdcResponse {
             output.getHeader().setRcode(Rcode.NXDOMAIN);
             return output;
         }
-        TXTRecord record = new EncodedTxtRecord(input.getQuestion().getName(), block.data()).txtRecord();
+        TXTRecord record = new EncodedTxtRecord(input.getQuestion().getName(), block).txtRecord();
         output.addRecord(record, Section.ANSWER);
         return output;
     }

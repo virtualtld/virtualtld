@@ -1,16 +1,21 @@
 package com.virtualtld.client;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xbill.DNS.Message;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class CdcClient {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(CdcClient.class);
 
     private final DnsClient dnsClient = new DnsClient(this::onDnsClientResponse);
 
@@ -57,10 +62,14 @@ public class CdcClient {
         return "no session";
     }
 
-    public synchronized void download(URI uri, Consumer<byte[]> callback) {
-        DownloadSession s = new DownloadSession(uri, nsCache::sendRequest, (session, result) -> {
+    public synchronized void download(URI uri, OutputStream outputStream) {
+        DownloadSession s = new DownloadSession(uri, nsCache::sendRequest, outputStream, (session) -> {
             sessions.remove(session);
-            callback.accept(result);
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                LOGGER.error("failed to close output stream", e);
+            }
         });
         sessions.add(s);
         s.start(rootNameServers);

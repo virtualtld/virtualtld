@@ -13,6 +13,7 @@ import org.xbill.DNS.NSRecord;
 import org.xbill.DNS.Name;
 import org.xbill.DNS.Section;
 
+import java.io.ByteArrayOutputStream;
 import java.net.IDN;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
@@ -41,10 +42,11 @@ public class DownloadSessionTest {
             blocks.put(block.digest(), block);
         }
         List<DnsRequest> requests = new ArrayList<>();
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
         DownloadSession session = new DownloadSession(
-                new URI("virtualtld://最新版本.com/"), requests::add, (s, result) -> {
+                new URI("virtualtld://最新版本.com/"), requests::add, result, (s) -> {
             downloaded = true;
-            assertThat(new String(result), equalTo("hello"));
+            assertThat(new String(result.toByteArray()), equalTo("hello"));
         });
         session.start(CdcClient.ROOT_NAME_SERVERS);
         // request 1

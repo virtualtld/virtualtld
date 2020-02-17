@@ -17,6 +17,8 @@ import org.xbill.DNS.TXTRecord;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.IDN;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -36,7 +38,8 @@ public class DownloadSession {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(DownloadSession.class);
     private final Consumer<DnsRequest> sendRequest;
-    private final BiConsumer<DownloadSession, byte[]> onDownloaded;
+    private final OutputStream outputStream;
+    private final Consumer<DownloadSession> onDownloaded;
     private final Map<Integer, Function<Message, String>> handlers = new HashMap<>();
     private final URI uri;
     private DnsRequest rootNameRequest;
@@ -51,12 +54,11 @@ public class DownloadSession {
     private Name publicDomain;
     private boolean allHeadNodesReceived;
 
-    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest,
-                           BiConsumer<DownloadSession, byte[]> onDownloaded) {
+    public DownloadSession(URI uri, Consumer<DnsRequest> sendRequest, OutputStream outputStream, Consumer<DownloadSession> onDownloaded) {
         this.uri = uri;
         this.sendRequest = sendRequest;
+        this.outputStream = outputStream;
         this.onDownloaded = onDownloaded;
-
     }
 
     public void start(List<InetSocketAddress> rootNameServers) {
@@ -140,7 +142,12 @@ public class DownloadSession {
         LOGGER.info(String.format("received body chunk@%d, allHeadNodesReceived: %s, requestsCount:%d, responsesCount: %d",
                 chunkIndex, allHeadNodesReceived, bodyChunkReqs.size(), bodyChunkResps.size()));
         if (allHeadNodesReceived && missingBodyChunkDigests.isEmpty()) {
-            onDownloaded.accept(this, result());
+            try {
+                outputStream.write(result());
+                onDownloaded.accept(this);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         return "success";
     }

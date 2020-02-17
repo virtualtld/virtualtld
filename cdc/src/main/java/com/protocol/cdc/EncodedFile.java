@@ -62,7 +62,7 @@ public class EncodedFile {
 
         @Override
         public int ttl() {
-            return 60;
+            return 300;
         }
     }
 }

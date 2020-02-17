@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new VtldWebViewClient());
         webView.setWebChromeClient(new WebChromeClient());
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadUrl("http://www.baidu.com");
+        webView.loadUrl("file://最新版本.com");
     }
 
 }

@@ -48,7 +48,7 @@ public class EncodedHeadNode implements Block {
 
     @Override
     public int ttl() {
-        return 2147483647;
+        return 172800;
     }
 
     private byte[] calculateData() {

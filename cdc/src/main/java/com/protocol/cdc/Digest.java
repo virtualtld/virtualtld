@@ -4,7 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Formatter;
 
-class Digest {
+public class Digest {
 
     public static String sha1(byte[] chunk1, byte[] chunk2) {
         MessageDigest crypt = sha1();
@@ -12,6 +12,10 @@ class Digest {
         crypt.update(chunk1);
         crypt.update(chunk2);
         return hex(crypt.digest());
+    }
+
+    public static String sha1(byte[] chunk) {
+        return hex(sha1Bytes(chunk));
     }
 
     public static byte[] sha1Bytes(byte[] chunk) {

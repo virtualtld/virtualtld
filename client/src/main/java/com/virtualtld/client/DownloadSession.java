@@ -2,6 +2,7 @@ package com.virtualtld.client;
 
 import com.protocol.cdc.DecodedHeadNode;
 import com.protocol.cdc.DecodedTxtRecord;
+import com.protocol.cdc.Digest;
 import com.protocol.cdc.Password;
 
 import org.slf4j.Logger;
@@ -101,17 +102,28 @@ public class DownloadSession {
 
     private String onFirstHeadNodeResponse(Message resp) {
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
-        DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
-        DecodedHeadNode node = new DecodedHeadNode(decodedTxtRecord.data());
+        byte[] data = new DecodedTxtRecord(encodedTxtRecord).data();
+        DecodedHeadNode node = new DecodedHeadNode(data);
         password = new Password(publicDomain.toString(), node.salt());
         processHeadNode(0, node);
         return "success";
     }
 
+    private byte[] decodeTxtRecord(TXTRecord encodedTxtRecord) {
+        String receivedDigest = encodedTxtRecord.getName().getLabelString(0);
+        DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
+        byte[] bytes = decodedTxtRecord.data();
+        String actualDigest = Digest.sha1(bytes);
+        if (!receivedDigest.equals(actualDigest)) {
+            throw new RuntimeException(encodedTxtRecord.getName() + " content digest invalid: " + actualDigest);
+        }
+        return bytes;
+    }
+
     private String onHeadNodeResponse(int bodyChunkIndexBase, Message resp) {
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
-        DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
-        DecodedHeadNode node = new DecodedHeadNode(decodedTxtRecord.data());
+        byte[] data = decodeTxtRecord(encodedTxtRecord);
+        DecodedHeadNode node = new DecodedHeadNode(data);
         processHeadNode(bodyChunkIndexBase, node);
         return "success";
     }
@@ -120,8 +132,7 @@ public class DownloadSession {
         String receivedDigest = resp.getQuestion().getName().getLabelString(0);
         missingBodyChunkDigests.remove(receivedDigest);
         TXTRecord encodedTxtRecord = (TXTRecord) resp.getSectionArray(Section.ANSWER)[0];
-        DecodedTxtRecord decodedTxtRecord = new DecodedTxtRecord(encodedTxtRecord);
-        byte[] bytes = password.decrypt(decodedTxtRecord.data());
+        byte[] bytes = password.decrypt(decodeTxtRecord(encodedTxtRecord));
         bodyChunkResps.put(chunkIndex, bytes);
         if (missingBodyChunkDigests.size() > 0 && missingBodyChunkDigests.size() < 3) {
             LOGGER.info("still missing " + missingBodyChunkDigests);

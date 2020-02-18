@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class HandleCdcRequest implements Consumer<DnsRequest> {
-    private final static Logger LOGGER = LoggerFactory.getLogger(HandleCdcRequest.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger("vtld.HCRequest");
     private final Message nsResp;
     private final Map<String, Block> blocks;
 

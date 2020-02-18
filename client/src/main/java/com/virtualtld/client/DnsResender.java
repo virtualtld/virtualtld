@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 
 public class DnsResender {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(DnsResender.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger("vtld.DnsResender");
     private final static ExecutorService executorService = Executors.newWorkStealingPool();
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<DnsRequest> sendRequest;

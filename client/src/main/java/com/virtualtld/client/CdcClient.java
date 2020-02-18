@@ -18,7 +18,7 @@ import java.util.List;
 
 public class CdcClient {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(CdcClient.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger("vtld.CdcClient");
 
     private final DnsClient dnsClient = new DnsClient(this::onDnsClientResponse);
 

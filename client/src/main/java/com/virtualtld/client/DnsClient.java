@@ -22,7 +22,7 @@ import java.util.function.Function;
 public class DnsClient {
 
     private final static ExecutorService executorService = Executors.newWorkStealingPool();
-    private final static Logger LOGGER = LoggerFactory.getLogger(DnsClient.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger("vtld.DnsClient");
     private final Function<Message, String> respHandler;
     private final DnsResender resender = new DnsResender(
             this::doSend, new int[]{100, 200, 400, 800, 1600});

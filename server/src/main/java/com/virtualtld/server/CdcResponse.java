@@ -22,7 +22,7 @@ import static java.util.Arrays.copyOfRange;
 
 public class CdcResponse {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(CdcResponse.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger("vtld.CdcResponse");
     private final Message input;
     private final Message nsResp;
     private final Map<String, Block> blocks;

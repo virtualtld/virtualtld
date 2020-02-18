@@ -14,9 +14,7 @@ import com.virtualtld.client.CdcClient;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.Collections;
 
 public class VtldWebViewClient extends WebViewClient {
 
@@ -24,8 +22,8 @@ public class VtldWebViewClient extends WebViewClient {
 
     public VtldWebViewClient() {
         cdcClient = new CdcClient();
-        cdcClient.rootNameServers = Collections.singletonList(
-                new InetSocketAddress("192.168.40.241", 8383));
+//        cdcClient.rootNameServers = Collections.singletonList(
+//                new InetSocketAddress("192.168.40.241", 8383));
         cdcClient.start();
     }
 

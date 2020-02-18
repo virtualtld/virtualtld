@@ -15,7 +15,6 @@ import java.net.URI;
 
 public class PathRequest {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(PathRequest.class);
     private final URI uri;
     private final Name privateDomain;
 

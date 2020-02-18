@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class EncodedDirectory {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(EncodedDirectory.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger("vtld.EncodedDirectory");
     private final Path webRoot;
     private final VirtualtldSite site;
     private final ScanOptions options;

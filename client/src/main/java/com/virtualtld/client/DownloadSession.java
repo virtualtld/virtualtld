@@ -35,7 +35,7 @@ import java.util.function.Function;
 
 public class DownloadSession {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(DownloadSession.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger("vtld.DownloadSession");
     private final Consumer<DnsRequest> sendRequest;
     private final OutputStream outputStream;
     private final Consumer<DownloadSession> onDownloaded;

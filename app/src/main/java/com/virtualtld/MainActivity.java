@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new VtldWebViewClient());
         webView.setWebChromeClient(new WebChromeClient());
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadUrl("file://最新版本.com/a.html");
+        webView.loadUrl("file://最新版本.com/long.txt");
     }
 
 }

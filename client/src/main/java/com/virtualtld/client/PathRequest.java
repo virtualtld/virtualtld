@@ -2,6 +2,8 @@ package com.virtualtld.client;
 
 import com.protocol.cdc.EncodedPath;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Name;
@@ -13,6 +15,7 @@ import java.net.URI;
 
 public class PathRequest {
 
+    private static Logger LOGGER = LoggerFactory.getLogger(PathRequest.class);
     private final URI uri;
     private final Name privateDomain;
 
@@ -33,9 +36,6 @@ public class PathRequest {
 
     public String digest() {
         try {
-            if (!uri.getScheme().equals("virtualtld")) {
-                throw new IllegalArgumentException("protocol must be virtualtld");
-            }
             Name publicDomain = Name.fromString(IDN.toASCII(uri.getAuthority() + "."));
             return new EncodedPath(publicDomain, uri.getPath()).digest();
         } catch (Exception e) {

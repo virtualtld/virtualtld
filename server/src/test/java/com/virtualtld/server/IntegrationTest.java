@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Random;
-import java.util.concurrent.Exchanger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,14 +57,7 @@ public class IntegrationTest {
         cdcClient.rootNameServers = Collections.singletonList(
                 new InetSocketAddress("127.0.0.1", 8383));
         cdcClient.start();
-        Exchanger<byte[]> exchanger = new Exchanger<>();
-        cdcClient.download(URI.create("virtualtld://最新版本.com/"), resp -> {
-            try {
-                exchanger.exchange(resp);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        assertThat(exchanger.exchange(null), equalTo(content));
+        byte[] result = cdcClient.download(URI.create("virtualtld://最新版本.com/"));
+        assertThat(result, equalTo(content));
     }
 }

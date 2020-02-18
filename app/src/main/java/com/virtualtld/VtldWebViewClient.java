@@ -12,7 +12,11 @@ import androidx.annotation.RequiresApi;
 
 import com.virtualtld.client.CdcClient;
 
-import java.io.ByteArrayInputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.util.Collections;
 
 public class VtldWebViewClient extends WebViewClient {
 
@@ -20,6 +24,9 @@ public class VtldWebViewClient extends WebViewClient {
 
     public VtldWebViewClient() {
         cdcClient = new CdcClient();
+        cdcClient.rootNameServers = Collections.singletonList(
+                new InetSocketAddress("192.168.40.241", 8383));
+        cdcClient.start();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -27,6 +34,13 @@ public class VtldWebViewClient extends WebViewClient {
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
         Log.i("vtld", "load " + request.getUrl());
-        return new WebResourceResponse("text/html", "utf8", new ByteArrayInputStream(("hello").getBytes()));
+        PipedInputStream pipedInputStream = new PipedInputStream();
+        try {
+            String uri = request.getUrl().toString();
+            cdcClient.download(URI.create(uri), new PipedOutputStream(pipedInputStream));
+            return new WebResourceResponse("text/html", "utf8", pipedInputStream);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -6,7 +6,12 @@ import android.webkit.WebView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MainActivity extends AppCompatActivity {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new VtldWebViewClient());
         webView.setWebChromeClient(new WebChromeClient());
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadUrl("file://最新版本.com");
+        webView.loadUrl("file://最新版本.com/a.html");
     }
 
 }
